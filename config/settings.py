@@ -16,7 +16,8 @@ def env_bool(name, default=False):
 
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-badilisha-hii-kabla-ya-production")
-DEBUG = env_bool("DEBUG", True)
+# Render inaweka RENDER=true: huko DEBUG ni False isipowekwa wazi, ili makosa yasionyeshe ramani ya mfumo
+DEBUG = env_bool("DEBUG", not os.environ.get("RENDER"))
 
 ALLOWED_HOSTS = [h for h in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h]
 CSRF_TRUSTED_ORIGINS = [o for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if o]
