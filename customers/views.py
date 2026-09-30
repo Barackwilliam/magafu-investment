@@ -1,12 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from django.db.models import Count, Max, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from core.models import Branch
 from core.utils import branch_filter, branch_required, paginate, scope_by_branch
-from loans.models import Loan
+from loans.models import Loan, Repayment
 
 from .forms import CustomerForm
 from .models import Customer
@@ -27,6 +27,7 @@ def customer_list(request):
     qs = qs.annotate(
         loans_count=Count("loans"),
         active_count=Count("loans", filter=Q(loans__status=Loan.Status.ACTIVE)),
+        active_loan_id=Max("loans__id", filter=Q(loans__status=Loan.Status.ACTIVE)),
     ).order_by("-created_at")
     return render(request, "customers/list.html", {
         "page": paginate(request, qs),
@@ -40,8 +41,11 @@ def customer_detail(request, pk):
     customer = get_object_or_404(scope_by_branch(Customer.objects.select_related("branch"), request.user), pk=pk)
     loans = customer.loans.with_totals().select_related("product")
     open_loan = loans.filter(status__in=Loan.OPEN_STATUSES).first()
+    repayments = (Repayment.objects.filter(loan__customer=customer)
+                  .select_related("loan", "received_by").order_by("-paid_at")[:50])
     return render(request, "customers/detail.html", {
-        "customer": customer, "loans": loans, "open_loan": open_loan,
+        "customer": customer, "loans": loans, "open_loan": open_loan, "repayments": repayments,
+        "methods": Repayment.Method.choices,
     })
 
 

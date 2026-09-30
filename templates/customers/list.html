@@ -20,7 +20,7 @@
 </form>
 <div class="panel table-wrap">
   <table>
-    <thead><tr><th>Mteja</th><th>Simu</th>{% if user.is_admin %}<th>Tawi</th>{% endif %}<th class="m-hide">Kazi</th><th class="num m-hide">Mikopo</th><th>Hali</th><th class="m-hide">Alisajiliwa</th></tr></thead>
+    <thead><tr><th>Mteja</th><th>Simu</th>{% if user.is_admin %}<th>Tawi</th>{% endif %}<th class="m-hide">Kazi</th><th class="num m-hide">Mikopo</th><th>Hali</th><th class="m-hide">Alisajiliwa</th><th></th></tr></thead>
     <tbody>
     {% for c in page %}
       <tr data-href="{% url 'customer_detail' c.pk %}">
@@ -32,9 +32,10 @@
         <td class="num m-hide">{{ c.loans_count }}</td>
         <td>{% if not c.is_active %}<span class="badge st-muted">Amezimwa</span>{% elif c.active_count %}<span class="badge st-active">Anadaiwa</span>{% elif c.loans_count %}<span class="badge st-done">Hana deni</span>{% else %}<span class="badge st-info">Mpya</span>{% endif %}</td>
         <td class="nowrap m-hide">{{ c.created_at|date:"j M Y" }}</td>
+        <td class="actions-cell">{% if c.active_loan_id %}<a class="btn btn-gold btn-sm" href="{% url 'customer_detail' c.pk %}#lipa"><svg><use href="#i-cash"/></svg>Pokea malipo</a>{% else %}<a class="btn btn-ghost btn-sm" href="{% url 'loan_apply' %}?mteja={{ c.pk }}">Mpe mkopo</a>{% endif %}</td>
       </tr>
     {% empty %}
-      <tr><td colspan="7" class="empty"><div class="empty-state"><div class="ico"><svg><use href="#i-users"/></svg></div>
+      <tr><td colspan="8" class="empty"><div class="empty-state"><div class="ico"><svg><use href="#i-users"/></svg></div>
         <h3>Hakuna mteja aliyepatikana</h3><p>{% if q %}Jaribu jina au namba nyingine.{% else %}Anza kwa kusajili mteja wa kwanza.{% endif %}</p>
         <a class="btn btn-gold" href="{% url 'customer_create' %}">Sajili mteja mpya</a></div></td></tr>
     {% endfor %}

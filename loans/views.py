@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from core.models import Branch
@@ -26,6 +27,14 @@ FILTERS = {
     "zimekataliwa": ("Zimekataliwa/Zimefutwa",
                      Q(status__in=[Loan.Status.REJECTED, Loan.Status.WRITTEN_OFF])),
 }
+
+
+def _back(request, pk):
+    """Rudi ukurasa uliotuma fomu (mf. ukurasa wa mteja), vinginevyo ukurasa wa mkopo."""
+    nxt = request.POST.get("next", "")
+    if nxt and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()}):
+        return redirect(nxt)
+    return redirect("loan_detail", pk=pk)
 
 
 def _loan_or_404(request, pk):
@@ -140,7 +149,7 @@ def loan_pay(request, pk):
     form = RepaymentForm(request.POST)
     if not form.is_valid():
         messages.error(request, "Weka kiasi sahihi cha malipo.")
-        return redirect("loan_detail", pk=pk)
+        return _back(request, pk)
     d = form.cleaned_data
     try:
         payment = services.record_payment(pk, amount=d["amount"], method=d["method"],
@@ -151,7 +160,7 @@ def loan_pay(request, pk):
         messages.success(request, msg)
     except services.LoanError as e:
         messages.error(request, str(e))
-    return redirect("loan_detail", pk=pk)
+    return _back(request, pk)
 
 
 @require_POST
