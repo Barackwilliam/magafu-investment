@@ -111,7 +111,7 @@ LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "login"
 
 # Django admin imefichwa kwenye URL hii (kwa developer tu)
-ADMIN_URL = os.environ.get("ADMIN_URL", "mfumo-ndani/")
+ADMIN_URL = os.environ.get("ADMIN_URL", "admin/")
 
 COMPANY_NAME = os.environ.get("COMPANY_NAME", "Magafu Investment")
 COMPANY_PHONE = os.environ.get("COMPANY_PHONE", "")
