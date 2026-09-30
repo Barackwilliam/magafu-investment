@@ -5,6 +5,7 @@
 <div class="page-head">
   <div><h1>Daftari la fedha</h1><p>Matumizi, ada, pesa zilizoongezwa na zilizopelekwa benki · {{ start|date:"j M" }} – {{ end|date:"j M Y" }}</p></div>
   <div class="actions">
+    {% include "_excel_button.html" %}
     <a class="btn btn-ghost" href="{% url 'cash_create' %}?aina=EXPENSE"><svg><use href="#i-receipt"/></svg>Rekodi matumizi</a>
     <a class="btn btn-gold" href="{% url 'cash_create' %}"><svg><use href="#i-plus"/></svg>Muamala mpya</a>
   </div>

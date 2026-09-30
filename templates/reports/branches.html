@@ -9,7 +9,7 @@
   <div class="stat"><span>Madeni</span><b>{{ totals.outstanding|money }}</b></div>
   <div class="stat"><span>Madeni sugu</span><b class="text-red">{{ totals.overdue|money }}</b></div>
 </div>
-{% include "_range_form.html" %}
+{% with csv=True %}{% include "_range_form.html" %}{% endwith %}
 <div class="panel table-wrap">
   <table>
     <thead><tr><th>Tawi</th><th class="num">Wanawake</th><th class="num">Wanaume</th><th class="num">Wateja</th><th class="num">Wanadaiwa</th><th class="num">Wamemaliza</th>

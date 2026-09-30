@@ -7,5 +7,5 @@
   <div class="field"><label for="mpaka">Mpaka</label><input type="date" id="mpaka" name="mpaka" value="{{ end|date:'Y-m-d' }}"></div>
   {% include "_branch_select.html" %}
   <button class="btn btn-dark" type="submit">Onyesha</button>
-  {% if csv %}<button class="btn btn-ghost" type="submit" name="export" value="csv"><svg><use href="#i-download"/></svg>Pakua Excel</button>{% endif %}
+  {% if csv %}<button class="btn btn-ghost" type="submit" name="export" value="xlsx"><svg><use href="#i-download"/></svg>Pakua Excel</button>{% endif %}
 </form>

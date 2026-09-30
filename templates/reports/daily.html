@@ -4,7 +4,7 @@
 {% block content %}
 <div class="page-head">
   <div><div class="eyebrow">Ripoti ya siku</div><h1>{{ day|date:"l, j F Y" }}</h1><p>Kila shilingi iliyoingia na kutoka siku hii.</p></div>
-  <div class="actions"><button class="btn btn-ghost" type="button" onclick="window.print()"><svg><use href="#i-printer"/></svg>Print</button></div>
+  <div class="actions">{% include "_excel_button.html" %}<button class="btn btn-ghost" type="button" onclick="window.print()"><svg><use href="#i-printer"/></svg>Print</button></div>
 </div>
 <form class="filters no-print" method="get">
   <div class="field"><label for="tarehe">Tarehe</label><input type="date" id="tarehe" name="tarehe" value="{{ day|date:'Y-m-d' }}" onchange="this.form.submit()"></div>
