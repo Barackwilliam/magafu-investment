@@ -106,7 +106,7 @@ Zikiwa zimezimwa, SMS zinarekodiwa kwenye kumbukumbu bila kutumwa, nzuri kwa kuj
 SMS zinatumwa: mkopo ukitolewa, malipo yakipokelewa (`SMS_ON_PAYMENT`), na vikumbusho (kitufe au cron).
 
 ## Django admin
-Iko kwenye `/admin/` (badilisha kwa `ADMIN_URL`). Ni kwa developer tu.
+Iko kwenye `/admin/` (badilisha kwa `ADMIN_URL`) na pia `/mfumo-ndani/`; zote mbili zina kila kitu. Ni kwa developer tu.
 
 ## Tests
 ```bash
