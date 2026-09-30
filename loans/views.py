@@ -7,8 +7,8 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from core.models import Branch
-from core.utils import (admin_required, branch_filter, manager_required, paginate,
-                        scope_by_branch)
+from core.utils import (admin_required, branch_filter, branch_required, manager_required,
+                        paginate, scope_by_branch)
 from sms.services import send_reminder
 
 from . import services
@@ -35,6 +35,7 @@ def _loan_or_404(request, pk):
 
 @login_required
 def loan_list(request):
+    services.apply_daily_penalties_once()
     qs = branch_filter(request, Loan.objects.with_totals().select_related("customer", "branch"))
     key = request.GET.get("hali", "hai")
     if key not in FILTERS:
@@ -54,7 +55,7 @@ def loan_list(request):
     })
 
 
-@login_required
+@branch_required
 def loan_apply(request):
     initial = {}
     if request.GET.get("mteja", "").isdigit():
@@ -78,6 +79,7 @@ def loan_apply(request):
 
 @login_required
 def loan_detail(request, pk):
+    services.apply_daily_penalties_once()
     loan = _loan_or_404(request, pk)
     return render(request, "loans/detail.html", {
         "loan": loan,

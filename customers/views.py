@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from core.models import Branch
-from core.utils import branch_filter, paginate, scope_by_branch
+from core.utils import branch_filter, branch_required, paginate, scope_by_branch
 from loans.models import Loan
 
 from .forms import CustomerForm
@@ -45,7 +45,7 @@ def customer_detail(request, pk):
     })
 
 
-@login_required
+@branch_required
 def customer_form(request, pk=None):
     instance = None
     if pk:

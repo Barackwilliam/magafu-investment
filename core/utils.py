@@ -26,6 +26,18 @@ def role_required(*roles):
     return decorator
 
 
+def branch_required(view):
+    """Afisa au meneja bila tawi hawezi kusajili chochote: kila rekodi lazima iwe na tawi."""
+    @wraps(view)
+    @login_required
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_admin and not request.user.branch_id:
+            messages.error(request, "Akaunti yako haina tawi. Mwombe admin akuwekee tawi kwanza.")
+            return redirect("dashboard")
+        return view(request, *args, **kwargs)
+    return wrapper
+
+
 admin_required = role_required()
 manager_required = role_required("MANAGER")
 

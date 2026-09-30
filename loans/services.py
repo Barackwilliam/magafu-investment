@@ -5,6 +5,7 @@ Hii inazuia makosa kama malipo mawili kuingia kwa wakati mmoja.
 from datetime import timedelta
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
 
@@ -21,6 +22,7 @@ class LoanError(Exception):
 
 @transaction.atomic
 def create_loan(*, customer, product, principal, user, notes="", form_fee_paid=False):
+    customer = type(customer).objects.select_for_update().get(pk=customer.pk)
     if Loan.objects.filter(customer=customer, status__in=Loan.OPEN_STATUSES).exists():
         raise LoanError("Mteja huyu tayari ana mkopo ambao haujaisha.")
     loan = Loan.objects.create(
@@ -124,6 +126,17 @@ def write_off(loan_id, user, reason=""):
     loan.notes = (loan.notes + f"\nUmefutwa na {user}: {reason}").strip()
     loan.save(update_fields=["status", "closed_at", "notes"])
     return loan
+
+
+def apply_daily_penalties_once():
+    """
+    Faini za siku bila kutegemea cron: ombi la kwanza la siku linaziweka.
+    Salama kuitwa mara nyingi, kwa sababu faini ya moja kwa moja ni moja tu kwa siku.
+    """
+    key = f"penalties:{timezone.localdate().isoformat()}"
+    if cache.add(key, True, timeout=60 * 60 * 26):
+        return apply_daily_penalties()
+    return 0
 
 
 def apply_daily_penalties():

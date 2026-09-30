@@ -10,6 +10,7 @@ from django.views.decorators.http import require_POST
 
 from finance.models import CashEntry
 from loans.models import Loan, Repayment
+from loans.services import apply_daily_penalties_once
 
 from .forms import BranchForm
 from .models import Branch
@@ -18,6 +19,7 @@ from .utils import admin_required, scope_by_branch, total
 
 @login_required
 def dashboard(request):
+    apply_daily_penalties_once()
     user = request.user
     today = timezone.localdate()
     loans = scope_by_branch(Loan.objects.all(), user)

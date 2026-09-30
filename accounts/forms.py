@@ -1,4 +1,5 @@
 from django import forms
+from django.db import models
 from django.contrib.auth.forms import AuthenticationForm
 
 from core.models import Branch
@@ -25,7 +26,8 @@ class UserForm(forms.ModelForm):
         labels = {"first_name": "Jina la kwanza", "last_name": "Jina la mwisho",
                   "username": "Jina la mtumiaji (la kuingilia)", "is_active": "Akaunti iko hai"}
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, acting_user=None, **kwargs):
+        self.acting_user = acting_user
         super().__init__(*args, **kwargs)
         self.fields["first_name"].required = True
         self.fields["username"].help_text = ""
@@ -41,8 +43,18 @@ class UserForm(forms.ModelForm):
         p1, p2 = data.get("password1"), data.get("password2")
         if p1 and p1 != p2:
             self.add_error("password2", "Nenosiri hazifanani.")
-        if data.get("role") != User.Role.ADMIN and not data.get("branch"):
+        role, active = data.get("role"), data.get("is_active")
+        if role != User.Role.ADMIN and not data.get("branch"):
             self.add_error("branch", "Meneja na afisa lazima wawe na tawi.")
+        user = self.instance
+        if user.pk and user.is_admin and not user.is_superuser and (role != User.Role.ADMIN or not active):
+            if self.acting_user and user.pk == self.acting_user.pk:
+                self.add_error(None, "Huwezi kujiondolea nafasi ya admin au kuzima akaunti yako mwenyewe.")
+            elif not User.objects.filter(is_active=True).exclude(pk=user.pk).filter(
+                    models.Q(role=User.Role.ADMIN) | models.Q(is_superuser=True)).exists():
+                self.add_error(None, "Lazima abaki angalau admin mmoja anayefanya kazi.")
+        if user.pk and self.acting_user and user.pk == self.acting_user.pk and active is False:
+            self.add_error("is_active", "Huwezi kuzima akaunti yako mwenyewe.")
         return data
 
     def save(self, commit=True):

@@ -11,6 +11,21 @@ class LoanProductForm(forms.ModelForm):
         fields = ["name", "interest_rate", "duration_days", "repayment_frequency", "form_fee",
                   "penalty_per_day", "min_amount", "max_amount", "is_active"]
 
+    def clean(self):
+        data = super().clean()
+        rate, days = data.get("interest_rate"), data.get("duration_days")
+        low, high = data.get("min_amount"), data.get("max_amount")
+        if rate is not None and not 0 <= rate <= 100:
+            self.add_error("interest_rate", "Riba iwe kati ya 0 na 100.")
+        if days is not None and days < 1:
+            self.add_error("duration_days", "Muda lazima uwe angalau siku 1.")
+        for name in ("form_fee", "penalty_per_day", "min_amount", "max_amount"):
+            if data.get(name) is not None and data[name] < 0:
+                self.add_error(name, "Kiasi hakiwezi kuwa hasi.")
+        if low and high and high < low:
+            self.add_error("max_amount", "Kiwango cha juu hakiwezi kuwa chini ya kiwango cha chini.")
+        return data
+
 
 class LoanApplicationForm(forms.Form):
     customer = forms.ModelChoiceField(label="Mteja", queryset=Customer.objects.none())
