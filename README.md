@@ -72,7 +72,14 @@ Bila cron, vikumbusho vinaweza kutumwa kwa kitufe ndani ya mfumo.
 - `password authentication failed` → password si sahihi, au user si `postgres.<project-ref>`.
 - `Bad Request (400)` → unatumia domain yako; iongeze kwenye `ALLOWED_HOSTS` na `CSRF_TRUSTED_ORIGINS`.
 
-## Roles
+## Muonekano
+- Rangi za nembo (nyeusi na dhahabu), mwanga na giza (kitufe cha mwezi juu; kinakumbukwa kwenye kifaa).
+- Simu kwanza: menyu ya chini, kitufe cha dhahabu "+" cha vitendo vya haraka, majedwali yanageuka kadi.
+- Tafuta popote: jina, simu (hata +255...) au namba ya mkopo kama MG00012. Kwenye kompyuta bonyeza `/`.
+- Inaweza kuwekwa kwenye simu kama app: fungua kwenye Chrome, kisha "Add to Home screen".
+- Chart.js iko ndani ya `static/vendor/` (haitegemei CDN).
+
+
 | Kazi | Afisa | Meneja | Admin |
 |---|---|---|---|
 | Kusajili wateja, kuomba mkopo, kupokea malipo, kurekodi matumizi | ✓ | ✓ | ✓ |

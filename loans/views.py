@@ -81,7 +81,10 @@ def loan_apply(request):
 def loan_detail(request, pk):
     services.apply_daily_penalties_once()
     loan = _loan_or_404(request, pk)
+    nav = {"PENDING": "inasubiri", "APPROVED": "imethibitishwa", "COMPLETED": "zimeisha",
+           "ACTIVE": "sugu" if loan.is_overdue else "hai"}.get(loan.status, "zote")
     return render(request, "loans/detail.html", {
+        "nav": "loans_" + nav,
         "loan": loan,
         "repayments": loan.repayments.select_related("received_by"),
         "penalties": loan.penalty_entries.all(),
@@ -220,5 +223,6 @@ def product_form(request, pk=None):
         return redirect("product_list")
     return render(request, "form.html", {
         "form": form, "back": reverse("product_list"),
+        "sections": {"name": "Masharti", "form_fee": "Ada na faini", "min_amount": "Kiwango cha mkopo"},
         "title": f"Hariri {instance.name}" if instance else "Ongeza aina ya mkopo",
     })

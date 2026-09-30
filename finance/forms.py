@@ -28,6 +28,11 @@ class CashEntryForm(forms.ModelForm):
             self.fields["branch"].queryset = Branch.objects.filter(is_active=True)
         self.fields["customer"].queryset = customers
         self.fields["customer"].required = False
+        self.fields["entry_type"].choices = [("", "Chagua aina ya muamala…")] + list(CashEntry.EntryType.choices)
+        self.fields["amount"].widget.attrs["inputmode"] = "numeric"
+        self.fields["customer"].empty_label = "Hakuna (si ya mteja)"
+        if "branch" in self.fields:
+            self.fields["branch"].empty_label = "Chagua tawi…"
         self.fields["customer"].help_text = "Kwa ada ya fomu au kutembelea tu."
 
     def clean_amount(self):

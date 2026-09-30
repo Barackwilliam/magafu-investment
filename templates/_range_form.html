@@ -1,7 +1,11 @@
-<form class="filters" method="get">
+<form class="filters collapsible" method="get">
+  <div class="filters-summary">
+    <span class="text-muted" style="font-size:.88rem">{{ start|date:"j M" }} – {{ end|date:"j M Y" }}</span>
+    <button type="button" class="btn btn-ghost btn-sm" data-filters-toggle><svg><use href="#i-filter"/></svg>Badilisha</button>
+  </div>
   <div class="field"><label for="kuanzia">Kuanzia</label><input type="date" id="kuanzia" name="kuanzia" value="{{ start|date:'Y-m-d' }}"></div>
   <div class="field"><label for="mpaka">Mpaka</label><input type="date" id="mpaka" name="mpaka" value="{{ end|date:'Y-m-d' }}"></div>
   {% include "_branch_select.html" %}
   <button class="btn btn-dark" type="submit">Onyesha</button>
-  {% if csv %}<button class="btn btn-ghost" type="submit" name="export" value="csv">Pakua Excel (CSV)</button>{% endif %}
+  {% if csv %}<button class="btn btn-ghost" type="submit" name="export" value="csv"><svg><use href="#i-download"/></svg>Pakua Excel</button>{% endif %}
 </form>

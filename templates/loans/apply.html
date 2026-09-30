@@ -2,29 +2,32 @@
 {% load magafu %}
 {% block title %}Omba mkopo{% endblock %}
 {% block content %}
-<div class="page-head"><div><h1>Omba mkopo</h1><p>Ombi litasubiri kuthibitishwa na meneja kabla pesa kutolewa.</p></div></div>
+<a class="back-link" href="{% url 'loan_list' %}"><svg><use href="#i-chevron-left"/></svg>Mikopo</a>
+<div class="page-head"><div><h1>Omba mkopo</h1><p>Ombi litasubiri meneja alithibitishe kabla pesa kutolewa.</p></div></div>
 <div class="grid grid-3">
   <form method="post" class="panel span-2" novalidate>{% csrf_token %}
     {% include "_form_fields.html" %}
     <div class="form-actions">
-      <button class="btn btn-gold" type="submit">Tuma ombi</button>
-      <a class="btn btn-ghost" href="{% url 'loan_list' %}">Ghairi</a>
+      <button class="btn btn-gold btn-lg" type="submit"><svg><use href="#i-send"/></svg>Tuma ombi</button>
+      <a class="btn btn-ghost btn-lg" href="{% url 'loan_list' %}">Ghairi</a>
     </div>
   </form>
-  <aside class="panel" aria-live="polite">
-    <h2 style="margin-bottom:12px">Makadirio</h2>
-    <dl class="kv" id="calc">
+  <aside class="panel calc" aria-live="polite">
+    <div class="eyebrow" style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-text);font-weight:600">Makadirio</div>
+    <div class="total" data-k="total">TSh —</div>
+    <div class="schedule" id="schedule" aria-hidden="true"></div>
+    <dl class="kv">
       <dt>Riba</dt><dd data-k="interest">—</dd>
-      <dt>Jumla ya kulipa</dt><dd data-k="total">—</dd>
       <dt>Muda</dt><dd data-k="days">—</dd>
       <dt>Kila rejesho</dt><dd data-k="inst">—</dd>
       <dt>Ada ya fomu</dt><dd data-k="fee">—</dd>
+      <dt>Kiwango</dt><dd data-k="range">—</dd>
     </dl>
-    <p class="text-muted" style="margin:14px 0 0;font-size:.88rem">Riba ni flat juu ya kiasi cha mkopo.</p>
+    <p class="text-muted" style="margin:14px 0 0;font-size:.84rem">Riba ni flat juu ya kiasi cha mkopo. Masharti yanahifadhiwa siku ya ombi.</p>
   </aside>
 </div>
 <script id="products" type="application/json">{
-{% for p in products %}"{{ p.pk }}": {"rate": {{ p.interest_rate|stringformat:"f" }}, "days": {{ p.duration_days }}, "freq": "{{ p.repayment_frequency }}", "fee": {{ p.form_fee|stringformat:"f" }}}{% if not forloop.last %},{% endif %}
+{% for p in products %}"{{ p.pk }}": {"rate": {{ p.interest_rate|stringformat:"f" }}, "days": {{ p.duration_days }}, "freq": "{{ p.repayment_frequency }}", "fee": {{ p.form_fee|stringformat:"f" }}, "min": {{ p.min_amount|stringformat:"f" }}, "max": {{ p.max_amount|stringformat:"f" }}}{% if not forloop.last %},{% endif %}
 {% endfor %}}</script>
 {% endblock %}
 {% block scripts %}
@@ -32,16 +35,27 @@
 (function () {
   var P = JSON.parse(document.getElementById("products").textContent);
   var per = { DAILY: 1, WEEKLY: 7, MONTHLY: 30 };
+  var label = { DAILY: "kwa siku", WEEKLY: "kwa wiki", MONTHLY: "kwa mwezi", ONCE: "mara moja" };
   var prod = document.getElementById("id_product"), amt = document.getElementById("id_principal");
-  function f(n) { return "TSh " + Math.round(n).toLocaleString(); }
-  function set(k, v) { document.querySelector('#calc [data-k="' + k + '"]').textContent = v; }
+  if (!prod || !amt) return;
+  amt.setAttribute("inputmode", "numeric");
+  function f(n) { return Math.round(n).toLocaleString("en-US"); }
+  function set(k, v) { document.querySelector('.calc [data-k="' + k + '"]').textContent = v; }
+  function bars(n) {
+    var box = document.getElementById("schedule"), html = "", m = Math.min(n, 40);
+    for (var i = 0; i < m; i++) html += '<i style="height:' + (35 + 65 * (i + 1) / m) + '%"></i>';
+    box.innerHTML = html;
+  }
   function calc() {
     var p = P[prod.value], a = parseFloat(amt.value || 0);
-    if (!p || !a) { ["interest","total","days","inst","fee"].forEach(function (k) { set(k, "—"); }); return; }
+    if (p) set("range", (p.min ? f(p.min) : "0") + " – " + (p.max ? f(p.max) : "bila kikomo"));
+    else set("range", "—");
+    if (!p || !a) { ["interest", "days", "inst", "fee"].forEach(function (k) { set(k, "—"); }); set("total", "TSh —"); bars(0); return; }
     var interest = Math.round(a * p.rate / 100), total = a + interest;
     var n = per[p.freq] ? Math.max(1, Math.ceil(p.days / per[p.freq])) : 1;
-    set("interest", f(interest) + " (" + p.rate + "%)"); set("total", f(total));
-    set("days", "Siku " + p.days); set("inst", f(Math.ceil(total / n)) + " × " + n); set("fee", f(p.fee));
+    set("total", "TSh " + f(total)); set("interest", f(interest) + " (" + p.rate + "%)");
+    set("days", "Siku " + p.days); set("inst", f(Math.ceil(total / n)) + " × " + n + " " + label[p.freq]); set("fee", f(p.fee));
+    bars(n);
   }
   prod.addEventListener("change", calc); amt.addEventListener("input", calc); calc();
 })();

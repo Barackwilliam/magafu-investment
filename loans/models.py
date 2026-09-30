@@ -153,6 +153,10 @@ class Loan(models.Model):
         return (timezone.localdate() - self.due_date).days if self.is_overdue else 0
 
     @property
+    def days_left(self):
+        return max(0, (self.due_date - timezone.localdate()).days) if self.due_date else 0
+
+    @property
     def display_status(self):
         return "OVERDUE" if self.is_overdue else self.status
 

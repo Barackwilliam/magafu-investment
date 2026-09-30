@@ -1,151 +1,213 @@
 {% extends "base.html" %}
 {% load magafu %}
-{% block title %}{{ loan.number }}{% endblock %}
+{% block title %}{{ loan.number }} · {{ loan.customer }}{% endblock %}
+{% block body_class %}{% if loan.status == 'ACTIVE' %}has-cta{% endif %}{% endblock %}
 {% block content %}
+<a class="back-link" href="{% url 'loan_list' %}?hali={% if loan.is_overdue %}sugu{% elif loan.status == 'ACTIVE' %}hai{% elif loan.status == 'PENDING' %}inasubiri{% elif loan.status == 'APPROVED' %}imethibitishwa{% elif loan.status == 'COMPLETED' %}zimeisha{% else %}zote{% endif %}"><svg><use href="#i-chevron-left"/></svg>Mikopo</a>
 <div class="page-head">
-  <div>
-    <h1>{{ loan.customer }} <span class="badge {{ loan.display_status|status_class }}" style="vertical-align:middle">{{ loan.display_status_label }}</span></h1>
-    <p>Mkopo {{ loan.number }}, {{ loan.product.name }}, tawi la {{ loan.branch }}</p>
+  <div class="profile">
+    <span class="avatar lg">{{ loan.customer.first_name|slice:":1" }}{{ loan.customer.last_name|slice:":1" }}</span>
+    <div>
+      <h1>{{ loan.customer }} <span class="badge {{ loan.display_status|status_class }}">{{ loan.display_status_label }}</span></h1>
+      <div class="meta"><span>{{ loan.number }}</span><span>{{ loan.product.name }}</span><span>Tawi la {{ loan.branch }}</span>
+        <a href="tel:{{ loan.customer.phone }}">{{ loan.customer.phone }}</a></div>
+    </div>
   </div>
   <div class="actions">
-    <a class="btn btn-ghost" href="{% url 'customer_detail' loan.customer_id %}">Taarifa za mteja</a>
-    <a class="btn btn-ghost" href="{% url 'loan_statement' loan.pk %}" target="_blank">Print statement</a>
+    <a class="btn btn-ghost" href="tel:{{ loan.customer.phone }}"><svg><use href="#i-phone"/></svg>Piga simu</a>
+    <a class="btn btn-ghost" href="{% url 'customer_detail' loan.customer_id %}"><svg><use href="#i-users"/></svg>Mteja</a>
+    <a class="btn btn-ghost" href="{% url 'loan_statement' loan.pk %}" target="_blank" rel="noopener"><svg><use href="#i-printer"/></svg>Statement</a>
   </div>
 </div>
 
-<div class="grid grid-3">
-  <section class="panel balance-box">
-    <span class="text-muted">Deni lililobaki</span>
-    <div class="big {% if loan.is_overdue %}text-red{% endif %}">TSh {{ loan.balance|money }}</div>
-    <div class="progress" role="progressbar" aria-valuenow="{{ loan.progress }}" aria-valuemin="0" aria-valuemax="100"><span style="width:{{ loan.progress }}%"></span></div>
-    <small class="text-muted">Amelipa {{ loan.progress }}% ({{ loan.amount_paid|money }} kati ya {{ loan.total_payable|add:loan.penalties|money }})</small>
-    {% if loan.status == 'ACTIVE' %}
-      <dl class="kv" style="margin-top:16px">
-        <dt>Kumaliza</dt><dd {% if loan.is_overdue %}class="text-red"{% endif %}>{{ loan.due_date|date:"j M Y" }}{% if loan.is_overdue %} (siku {{ loan.days_overdue }} nyuma){% endif %}</dd>
-        <dt>Rejesho</dt><dd>{{ loan.installment_amount|money }} {{ loan.get_repayment_frequency_display|lower }}</dd>
-        <dt>Yuko nyuma kwa</dt><dd {% if loan.arrears %}class="text-red"{% endif %}>{{ loan.arrears|money }}</dd>
-      </dl>
-    {% endif %}
-  </section>
+<section class="hero loan-hero">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">{% if loan.status == 'ACTIVE' %}Deni lililobaki{% elif loan.status == 'COMPLETED' %}Mkopo umelipwa wote{% elif loan.status == 'PENDING' or loan.status == 'APPROVED' %}Kiasi kinachoombwa{% else %}Deni lililobaki{% endif %}</div>
+      <div class="big {% if loan.is_overdue %}neg{% endif %}"><small>TSh</small>{% if loan.status == 'PENDING' or loan.status == 'APPROVED' %}{{ loan.principal|money }}{% else %}{{ loan.balance|money }}{% endif %}</div>
+      {% if loan.status == 'PENDING' or loan.status == 'APPROVED' %}
+        <p>Mteja atalipa jumla ya TSh {{ loan.total_payable|money }} ndani ya siku {{ loan.duration_days }}.</p>
+      {% else %}
+        <div class="progress" style="margin:14px 0 8px" role="progressbar" aria-valuenow="{{ loan.progress }}" aria-valuemin="0" aria-valuemax="100"><span style="width:{{ loan.progress }}%"></span></div>
+        <p>Amelipa <b style="color:#fff">{{ loan.progress }}%</b> · TSh {{ loan.amount_paid|money }} kati ya {{ loan.total_payable|add:loan.penalties|money }}</p>
+      {% endif %}
+    </div>
+    <div class="flow">
+      {% if loan.status == 'ACTIVE' %}
+        <div><span>Tarehe ya kumaliza</span><b {% if loan.is_overdue %}style="color:#FF8B80"{% endif %}>{{ loan.due_date|date:"j M Y" }}</b></div>
+        <div><span>{% if loan.is_overdue %}Amechelewa{% else %}Siku zilizobaki{% endif %}</span><b {% if loan.is_overdue %}style="color:#FF8B80"{% endif %}>{% if loan.is_overdue %}Siku {{ loan.days_overdue }}{% elif loan.days_left == 0 %}Leo{% else %}Siku {{ loan.days_left }}{% endif %}</b></div>
+        <div><span>Rejesho {{ loan.get_repayment_frequency_display|lower }}</span><b>{{ loan.installment_amount|money }}</b></div>
+        <div><span>Yuko nyuma kwa</span><b {% if loan.arrears %}style="color:#FF8B80"{% endif %}>{{ loan.arrears|money }}</b></div>
+        <div><span>Faini</span><b>{{ loan.penalties|money }}</b></div>
+        <div><span>Riba {{ loan.interest_rate|floatformat:"-2" }}%</span><b>{{ loan.interest_amount|money }}</b></div>
+      {% else %}
+        <div><span>Mkopo</span><b>{{ loan.principal|money }}</b></div>
+        <div><span>Riba {{ loan.interest_rate|floatformat:"-2" }}%</span><b>{{ loan.interest_amount|money }}</b></div>
+        <div><span>Jumla ya kulipa</span><b>{{ loan.total_payable|money }}</b></div>
+        <div><span>Muda</span><b>Siku {{ loan.duration_days }}</b></div>
+        <div><span>Marejesho</span><b>{{ loan.get_repayment_frequency_display }}</b></div>
+        <div><span>Kila rejesho</span><b>{{ loan.installment_amount|money }}</b></div>
+      {% endif %}
+    </div>
+  </div>
+</section>
 
+{% if loan.status == 'PENDING' or loan.status == 'APPROVED' %}
+<section class="panel" style="border-color:color-mix(in srgb, var(--gold) 45%, var(--line))">
+  <div class="panel-head">
+    <div><h2>{% if loan.status == 'PENDING' %}Ombi linasubiri uthibitisho{% else %}Mkopo umethibitishwa, tayari kutolewa{% endif %}</h2>
+      <p>{% if loan.status == 'PENDING' %}Kagua taarifa za mteja na mdhamini kabla ya kuthibitisha.{% else %}Toa pesa pale tu mteja anapokabidhiwa TSh {{ loan.principal|money }}.{% endif %}</p></div>
+  </div>
+  {% if user.is_manager %}
+    <div class="grid grid-2">
+      <div class="actions">
+        {% if loan.status == 'PENDING' %}
+          <form method="post" action="{% url 'loan_approve' loan.pk %}">{% csrf_token %}<button class="btn btn-gold btn-lg"><svg><use href="#i-badge-check"/></svg>Thibitisha mkopo</button></form>
+        {% else %}
+          <form method="post" action="{% url 'loan_disburse' loan.pk %}" data-confirm="Thibitisha kwamba mteja amekabidhiwa TSh {{ loan.principal|money }}.">{% csrf_token %}<button class="btn btn-gold btn-lg"><svg><use href="#i-send"/></svg>Toa pesa kwa mteja</button></form>
+        {% endif %}
+      </div>
+      <form method="post" action="{% url 'loan_reject' loan.pk %}" class="inline-form" data-confirm="Kataa ombi hili?">{% csrf_token %}
+        <div class="field"><label for="id_reason">Au kataa ombi</label><input name="reason" id="id_reason" placeholder="Sababu ya kukataa"></div>
+        <div><button class="btn btn-danger"><svg><use href="#i-x-circle"/></svg>Kataa ombi</button></div>
+      </form>
+    </div>
+  {% else %}
+    <div class="alert alert-info" style="margin:0"><svg><use href="#i-info"/></svg><div>{% if loan.status == 'PENDING' %}Ombi hili linasubiri meneja alithibitishe.{% else %}Mkopo umethibitishwa, unasubiri meneja atoe pesa.{% endif %}</div></div>
+  {% endif %}
+</section>
+{% endif %}
+
+<div class="grid grid-3">
+  {% if loan.status == 'ACTIVE' %}
+  <section class="panel span-2" id="lipa" style="scroll-margin-top:84px">
+    <div class="panel-head"><div><h2>Pokea malipo</h2><p>Deni lililobaki ni TSh {{ loan.balance|money }}. Malipo hayawezi kuzidi deni.</p></div></div>
+    <form method="post" action="{% url 'loan_pay' loan.pk %}" class="inline-form">{% csrf_token %}
+      <div class="field">
+        <label for="id_amount">Kiasi</label>
+        <div class="input-money"><span>TSh</span><input type="number" name="amount" id="id_amount" min="1" max="{{ loan.balance|floatformat:0 }}" step="1" inputmode="numeric" value="{{ pay_form.amount.value|floatformat:0 }}" required></div>
+        <div class="quick-amounts">
+          <button type="button" data-amount="{{ loan.installment_amount|floatformat:0 }}" data-target="id_amount">Rejesho · {{ loan.installment_amount|money }}</button>
+          {% if loan.arrears %}<button type="button" data-amount="{{ loan.arrears|floatformat:0 }}" data-target="id_amount">Deni la nyuma · {{ loan.arrears|money }}</button>{% endif %}
+          <button type="button" data-amount="{{ loan.balance|floatformat:0 }}" data-target="id_amount">Maliza deni · {{ loan.balance|money }}</button>
+        </div>
+      </div>
+      <fieldset class="field" style="border:0;padding:0;margin:0">
+        <legend style="font-weight:600;font-size:.86rem;margin-bottom:7px;color:var(--ink-2)">Njia ya malipo</legend>
+        <div class="method-grid">
+          {% for value, label in pay_form.fields.method.choices %}
+          <label><input type="radio" name="method" value="{{ value }}" {% if forloop.first %}checked{% endif %}><span>{{ label }}</span></label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <div class="field"><label for="id_reference">Namba ya muamala <span class="text-muted" style="font-weight:400">(kwa simu au benki)</span></label>
+        <input name="reference" id="id_reference" placeholder="mf. QK7H2LM9XP" autocomplete="off" autocapitalize="characters"></div>
+      <div><button class="btn btn-gold btn-lg"><svg><use href="#i-check"/></svg>Hifadhi malipo</button></div>
+    </form>
+  </section>
+  {% endif %}
+
+  <div style="display:grid;gap:18px;align-content:start" class="{% if loan.status != 'ACTIVE' %}span-2{% endif %}">
+    <section class="panel">
+      <h2 style="margin-bottom:14px">Hatua za mkopo</h2>
+      <ol class="timeline">
+        <li class="done"><span class="dot"><svg><use href="#i-file-plus"/></svg></span><div><strong>Ombi limepokelewa</strong><span>{{ loan.applied_at|date:"j M Y, H:i" }}{% if loan.created_by %} · {{ loan.created_by }}{% endif %}</span></div></li>
+        {% if loan.status == 'REJECTED' %}
+        <li class="bad"><span class="dot"><svg><use href="#i-x-circle"/></svg></span><div><strong>Limekataliwa</strong><span>{{ loan.closed_at|date:"j M Y, H:i" }}</span></div></li>
+        {% else %}
+        <li class="{% if loan.approved_at %}done{% endif %}"><span class="dot"><svg><use href="#i-badge-check"/></svg></span><div><strong>Kuthibitishwa</strong><span>{% if loan.approved_at %}{{ loan.approved_at|date:"j M Y, H:i" }}{% if loan.approved_by %} · {{ loan.approved_by }}{% endif %}{% else %}Bado{% endif %}</span></div></li>
+        <li class="{% if loan.disbursed_at %}done{% endif %}"><span class="dot"><svg><use href="#i-send"/></svg></span><div><strong>Pesa kutolewa</strong><span>{% if loan.disbursed_at %}{{ loan.disbursed_at|date:"j M Y, H:i" }}{% if loan.disbursed_by %} · {{ loan.disbursed_by }}{% endif %}{% else %}Bado{% endif %}</span></div></li>
+        <li class="{% if loan.status == 'COMPLETED' %}done{% elif loan.status == 'WRITTEN_OFF' or loan.is_overdue %}bad{% endif %}"><span class="dot"><svg><use href="{% if loan.status == 'WRITTEN_OFF' or loan.is_overdue %}#i-alert{% else %}#i-check-circle{% endif %}"/></svg></span>
+          <div><strong>{% if loan.status == 'COMPLETED' %}Amemaliza{% elif loan.status == 'WRITTEN_OFF' %}Umefutwa kwenye madeni{% elif loan.is_overdue %}Nje ya mkataba{% else %}Kumaliza{% endif %}</strong>
+          <span>{% if loan.closed_at %}{{ loan.closed_at|date:"j M Y" }}{% elif loan.due_date %}Kabla ya {{ loan.due_date|date:"j M Y" }}{% else %}—{% endif %}</span></div></li>
+        {% endif %}
+      </ol>
+      {% if loan.notes %}<p class="text-muted" style="white-space:pre-line;margin:16px 0 0;font-size:.88rem;padding-top:14px;border-top:1px solid var(--line)">{{ loan.notes }}</p>{% endif %}
+    </section>
+
+    {% if loan.status == 'ACTIVE' %}
+    <section class="panel">
+      <h2 style="margin-bottom:14px">Mawasiliano</h2>
+      <form method="post" action="{% url 'loan_remind' loan.pk %}">{% csrf_token %}
+        <button class="btn btn-dark btn-block"><svg><use href="#i-message"/></svg>Tuma SMS ya kikumbusho</button></form>
+      {% if loan.customer.guarantor_phone %}
+        <a class="list-item" href="tel:{{ loan.customer.guarantor_phone }}" style="margin-top:8px">
+          <span class="avatar muted"><svg width="18" height="18"><use href="#i-phone"/></svg></span>
+          <span class="grow"><strong>{{ loan.customer.guarantor_name|default:"Mdhamini" }}</strong><span class="sub">Mdhamini{% if loan.customer.guarantor_relation %} · {{ loan.customer.guarantor_relation }}{% endif %} · {{ loan.customer.guarantor_phone }}</span></span>
+        </a>
+      {% endif %}
+      {% if user.is_manager %}
+      <details class="more"><summary>Weka faini</summary>
+        <form method="post" action="{% url 'loan_penalty' loan.pk %}" class="inline-form">{% csrf_token %}
+          <div class="field"><label for="id_pen_amount">Kiasi</label><div class="input-money"><span>TSh</span><input type="number" name="amount" id="id_pen_amount" min="1" inputmode="numeric" value="{{ penalty_form.amount.value|default_if_none:''|floatformat:0 }}" required></div></div>
+          <div class="field"><label for="id_pen_reason">Sababu</label><input name="reason" id="id_pen_reason" placeholder="Kuchelewa kulipa"></div>
+          <div><button class="btn btn-ghost">Weka faini</button></div>
+        </form>
+      </details>
+      {% endif %}
+      {% if user.is_admin %}
+      <details class="more"><summary>Futa mkopo kwenye madeni</summary>
+        <form method="post" action="{% url 'loan_write_off' loan.pk %}" class="inline-form" data-confirm="Mkopo utaondolewa kwenye madeni yanayodaiwa. Endelea?">{% csrf_token %}
+          <div class="field"><label for="id_wo">Sababu</label><input name="reason" id="id_wo" required></div>
+          <div><button class="btn btn-danger">Futa mkopo</button></div>
+        </form>
+      </details>
+      {% endif %}
+    </section>
+    {% endif %}
+  </div>
+
+  {% if loan.status != 'ACTIVE' %}
   <section class="panel">
-    <h2 style="margin-bottom:12px">Masharti</h2>
+    <h2 style="margin-bottom:10px">Masharti</h2>
     <dl class="kv">
       <dt>Mkopo</dt><dd>{{ loan.principal|money }}</dd>
       <dt>Riba ({{ loan.interest_rate|floatformat:"-2" }}%)</dt><dd>{{ loan.interest_amount|money }}</dd>
       <dt>Jumla</dt><dd>{{ loan.total_payable|money }}</dd>
       <dt>Faini</dt><dd>{{ loan.penalties|money }}</dd>
       <dt>Muda</dt><dd>Siku {{ loan.duration_days }}</dd>
-      <dt>Simu</dt><dd><a href="tel:{{ loan.customer.phone }}">{{ loan.customer.phone }}</a></dd>
+      <dt>Mdhamini</dt><dd>{{ loan.customer.guarantor_name|default:"—" }}{% if loan.customer.guarantor_phone %}<a class="sub" href="tel:{{ loan.customer.guarantor_phone }}">{{ loan.customer.guarantor_phone }}</a>{% endif %}</dd>
     </dl>
   </section>
-
-  <section class="panel">
-    <h2 style="margin-bottom:12px">Hatua</h2>
-    <dl class="kv">
-      <dt>Ombi</dt><dd>{{ loan.applied_at|date:"j M Y" }}<span class="sub">{{ loan.created_by|default:"" }}</span></dd>
-      <dt>Kuthibitishwa</dt><dd>{{ loan.approved_at|date:"j M Y"|default:"—" }}<span class="sub">{{ loan.approved_by|default:"" }}</span></dd>
-      <dt>Kutolewa</dt><dd>{{ loan.disbursed_at|date:"j M Y"|default:"—" }}<span class="sub">{{ loan.disbursed_by|default:"" }}</span></dd>
-      {% if loan.closed_at %}<dt>Kufungwa</dt><dd>{{ loan.closed_at|date:"j M Y" }}</dd>{% endif %}
-    </dl>
-    {% if loan.notes %}<p class="text-muted" style="white-space:pre-line;margin:12px 0 0">{{ loan.notes }}</p>{% endif %}
-  </section>
-</div>
-
-{% if loan.status == 'PENDING' or loan.status == 'APPROVED' %}
-<section class="panel">
-  {% if user.is_manager %}
-    <div class="actions">
-      {% if loan.status == 'PENDING' %}
-        <form method="post" action="{% url 'loan_approve' loan.pk %}">{% csrf_token %}<button class="btn btn-gold">Thibitisha mkopo</button></form>
-      {% else %}
-        <form method="post" action="{% url 'loan_disburse' loan.pk %}" data-confirm="Thibitisha kwamba mteja amekabidhiwa TSh {{ loan.principal|money }}.">{% csrf_token %}<button class="btn btn-gold">Toa pesa kwa mteja</button></form>
-      {% endif %}
-      <form method="post" action="{% url 'loan_reject' loan.pk %}" class="actions" data-confirm="Kataa ombi hili?">{% csrf_token %}
-        <input name="reason" placeholder="Sababu ya kukataa" style="width:240px"><button class="btn btn-danger">Kataa</button></form>
-    </div>
-  {% else %}
-    <p class="text-muted" style="margin:0">{% if loan.status == 'PENDING' %}Ombi hili linasubiri meneja alithibitishe.{% else %}Mkopo umethibitishwa, unasubiri meneja atoe pesa.{% endif %}</p>
   {% endif %}
-</section>
-{% endif %}
-
-{% if loan.status == 'ACTIVE' %}
-<div class="grid grid-2">
-  <section class="panel" id="lipa">
-    <h2 style="margin-bottom:12px">Pokea malipo</h2>
-    <form method="post" action="{% url 'loan_pay' loan.pk %}" class="inline-form">{% csrf_token %}
-      <div class="row">
-        <div class="field"><label for="id_amount">Kiasi (TSh)</label>{{ pay_form.amount }}</div>
-        <div class="field"><label for="id_method">Njia</label>{{ pay_form.method }}</div>
-      </div>
-      <div class="field"><label for="id_reference">Namba ya muamala (kwa simu au benki)</label>{{ pay_form.reference }}</div>
-      <div><button class="btn btn-gold">Hifadhi malipo</button></div>
-    </form>
-  </section>
-  <section class="panel">
-    <h2 style="margin-bottom:12px">Mawasiliano</h2>
-    <form method="post" action="{% url 'loan_remind' loan.pk %}">{% csrf_token %}
-      <button class="btn btn-dark">Tuma SMS ya kikumbusho</button></form>
-    {% if loan.customer.guarantor_phone %}<p class="text-muted" style="margin:12px 0 0">Mdhamini: {{ loan.customer.guarantor_name }}, <a href="tel:{{ loan.customer.guarantor_phone }}">{{ loan.customer.guarantor_phone }}</a></p>{% endif %}
-    {% if user.is_manager %}
-    <details class="more"><summary>Weka faini</summary>
-      <form method="post" action="{% url 'loan_penalty' loan.pk %}" class="inline-form">{% csrf_token %}
-        <div class="row">
-          <div class="field"><label for="id_pen_amount">Kiasi</label><input type="number" name="amount" id="id_pen_amount" min="1" value="{{ penalty_form.amount.value|default_if_none:'' }}" required></div>
-          <div class="field"><label for="id_pen_reason">Sababu</label><input name="reason" id="id_pen_reason" placeholder="Kuchelewa kulipa"></div>
-        </div>
-        <div><button class="btn btn-ghost">Weka faini</button></div>
-      </form>
-    </details>
-    {% endif %}
-    {% if user.is_admin %}
-    <details class="more"><summary>Futa mkopo kwenye madeni</summary>
-      <form method="post" action="{% url 'loan_write_off' loan.pk %}" class="inline-form" data-confirm="Mkopo utaondolewa kwenye madeni yanayodaiwa. Endelea?">{% csrf_token %}
-        <div class="field"><label for="id_wo">Sababu</label><input name="reason" id="id_wo" required></div>
-        <div><button class="btn btn-danger">Futa mkopo</button></div>
-      </form>
-    </details>
-    {% endif %}
-  </section>
 </div>
-{% endif %}
 
-<section class="panel">
-  <h2 style="margin-bottom:12px">Marejesho</h2>
-  <div class="table-wrap"><table>
+<section class="panel table-wrap" style="margin-top:18px">
+  <div class="panel-head" style="padding:20px 20px 0"><div><h2>Marejesho</h2><p>{{ repayments|length }} malipo · jumla TSh {{ loan.amount_paid|money }}</p></div></div>
+  <table>
     <thead><tr><th>Tarehe</th><th>Njia</th><th>Namba ya muamala</th><th>Amepokea</th><th class="num">Kiasi</th></tr></thead>
     <tbody>
     {% for r in repayments %}
       <tr><td>{{ r.paid_at|date:"j M Y, H:i" }}</td><td>{{ r.get_method_display }}</td><td>{{ r.reference|default:"—" }}</td>
-        <td>{{ r.received_by|default:"" }}</td><td class="num">{{ r.amount|money }}</td></tr>
+        <td>{{ r.received_by|default:"" }}</td><td class="num"><strong class="text-green">{{ r.amount|money }}</strong></td></tr>
     {% empty %}<tr><td colspan="5" class="empty">Hakuna malipo bado.</td></tr>{% endfor %}
     </tbody>
     {% if repayments %}<tfoot><tr><td colspan="4">Jumla</td><td class="num">{{ loan.amount_paid|money }}</td></tr></tfoot>{% endif %}
-  </table></div>
+  </table>
 </section>
 
 {% if penalties %}
-<section class="panel">
-  <h2 style="margin-bottom:12px">Faini</h2>
-  <div class="table-wrap"><table>
+<section class="panel table-wrap">
+  <div class="panel-head" style="padding:20px 20px 0"><h2>Faini</h2></div>
+  <table>
     <thead><tr><th>Tarehe</th><th>Sababu</th><th class="num">Kiasi</th></tr></thead>
     <tbody>{% for p in penalties %}<tr><td>{{ p.date|date:"j M Y" }}</td><td>{{ p.reason }}</td><td class="num">{{ p.amount|money }}</td></tr>{% endfor %}</tbody>
-  </table></div>
+  </table>
 </section>
 {% endif %}
 
 {% if sms_logs %}
-<section class="panel">
-  <h2 style="margin-bottom:12px">SMS kwa mteja</h2>
-  <div class="table-wrap"><table>
+<section class="panel table-wrap">
+  <div class="panel-head" style="padding:20px 20px 0"><h2>SMS kwa mteja</h2></div>
+  <table>
     <thead><tr><th>Muda</th><th>Aina</th><th>Ujumbe</th><th>Hali</th></tr></thead>
-    <tbody>{% for s in sms_logs %}<tr><td>{{ s.created_at|date:"j M, H:i" }}</td><td>{{ s.get_kind_display }}</td><td>{{ s.message|truncatechars:90 }}</td>
+    <tbody>{% for s in sms_logs %}<tr><td class="nowrap">{{ s.created_at|date:"j M, H:i" }}</td><td>{{ s.get_kind_display }}</td><td>{{ s.message|truncatechars:90 }}</td>
       <td><span class="badge {{ s.status|status_class }}">{{ s.get_status_display }}</span></td></tr>{% endfor %}</tbody>
-  </table></div>
+  </table>
 </section>
 {% endif %}
+
 {% if loan.status == 'ACTIVE' %}
-<a href="#lipa" class="mobile-cta" data-focus="id_amount">Pokea malipo &middot; deni {{ loan.balance|money }}</a>
+<a href="#lipa" class="mobile-cta" data-focus="id_amount"><span><svg width="20" height="20" style="display:inline;vertical-align:-4px;margin-right:6px"><use href="#i-cash"/></svg>Pokea malipo</span><span>TSh {{ loan.balance|money }}</span></a>
 {% endif %}
 {% endblock %}

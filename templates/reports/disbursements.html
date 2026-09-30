@@ -2,18 +2,28 @@
 {% load magafu %}
 {% block title %}Mikopo iliyotolewa{% endblock %}
 {% block content %}
-<div class="page-head"><div><h1>Mikopo iliyotolewa</h1><p>Mikopo {{ count }}, jumla ya <strong>TSh {{ agg.p|money }}</strong> pamoja na riba ya TSh {{ agg.i|money }}</p></div></div>
+<div class="page-head">
+  <div><div class="eyebrow">Ripoti</div><h1>Mikopo iliyotolewa</h1><p>{{ start|date:"j M" }} – {{ end|date:"j M Y" }}</p></div>
+</div>
+<div class="stats">
+  <div class="stat dark"><span>Mikopo iliyotolewa</span><b>TSh {{ agg.p|money }}</b><small>mikopo {{ count }}</small></div>
+  <div class="stat"><span>Riba itakayopatikana</span><b>{{ agg.i|money }}</b></div>
+  <div class="stat"><span>Jumla ya kulipwa</span><b>{{ agg.t|money }}</b></div>
+</div>
 {% with csv=True %}{% include "_range_form.html" %}{% endwith %}
-<div class="panel table-wrap"><table>
-  <thead><tr><th>Tarehe</th><th>Mteja</th><th>Tawi</th><th class="num">Mkopo</th><th class="num">Riba</th><th class="num">Amelipa</th><th class="num">Deni</th><th>Hali</th></tr></thead>
-  <tbody>
-  {% for l in rows %}
-    <tr><td>{{ l.disbursed_at|date:"j M Y" }}</td><td><a href="{% url 'loan_detail' l.pk %}">{{ l.customer }}</a><span class="sub">{{ l.number }}</span></td>
-      <td>{{ l.branch }}</td><td class="num">{{ l.principal|money }}</td><td class="num">{{ l.interest_amount|money }}</td>
-      <td class="num">{{ l.paid_total|money }}</td><td class="num">{{ l.balance_total|money }}</td>
-      <td><span class="badge {{ l.display_status|status_class }}">{{ l.display_status_label }}</span></td></tr>
-  {% empty %}<tr><td colspan="8" class="empty">Hakuna mkopo uliotolewa kwenye kipindi hiki.</td></tr>{% endfor %}
-  </tbody>
-  {% if rows %}<tfoot><tr><td colspan="3">Jumla</td><td class="num">{{ agg.p|money }}</td><td class="num">{{ agg.i|money }}</td><td colspan="3"></td></tr></tfoot>{% endif %}
-</table></div>
+<div class="panel table-wrap">
+  <table>
+    <thead><tr><th>Mteja</th><th>Tarehe</th>{% if user.is_admin %}<th>Tawi</th>{% endif %}<th class="num">Mkopo</th><th class="num">Riba</th><th class="num">Amelipa</th><th class="num">Deni</th><th>Hali</th></tr></thead>
+    <tbody>
+    {% for l in rows %}
+      <tr data-href="{% url 'loan_detail' l.pk %}"><td><a href="{% url 'loan_detail' l.pk %}">{{ l.customer }}</a><span class="sub">{{ l.number }}</span></td>
+        <td class="nowrap">{{ l.disbursed_at|date:"j M Y" }}</td>{% if user.is_admin %}<td>{{ l.branch }}</td>{% endif %}
+        <td class="num">{{ l.principal|money }}</td><td class="num">{{ l.interest_amount|money }}</td>
+        <td class="num">{{ l.paid_total|money }}</td><td class="num"><strong>{{ l.balance_total|money }}</strong></td>
+        <td><span class="badge {{ l.display_status|status_class }}">{{ l.display_status_label }}</span></td></tr>
+    {% empty %}<tr><td colspan="8" class="empty"><div class="empty-state"><div class="ico"><svg><use href="#i-send"/></svg></div><p>Hakuna mkopo uliotolewa kwenye kipindi hiki.</p></div></td></tr>{% endfor %}
+    </tbody>
+    {% if rows %}<tfoot><tr><td colspan="{% if user.is_admin %}3{% else %}2{% endif %}">Jumla</td><td class="num">{{ agg.p|money }}</td><td class="num">{{ agg.i|money }}</td><td></td><td></td><td></td></tr></tfoot>{% endif %}
+  </table>
+</div>
 {% endblock %}

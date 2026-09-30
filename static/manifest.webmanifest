@@ -1,0 +1,16 @@
+{
+  "name": "Magafu Investment",
+  "short_name": "Magafu",
+  "description": "Mfumo wa mikopo wa Magafu Investment",
+  "lang": "sw",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#09090A",
+  "theme_color": "#09090A",
+  "icons": [
+    {"src": "img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

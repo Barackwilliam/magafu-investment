@@ -3,34 +3,56 @@
 {% block title %}Mikopo{% endblock %}
 {% block content %}
 <div class="page-head">
-  <div><h1>Mikopo</h1><p>{{ page.paginator.count }} kwenye orodha hii</p></div>
-  <a class="btn btn-gold" href="{% url 'loan_apply' %}">Omba mkopo</a>
+  <div><h1>Mikopo</h1><p>{{ page.paginator.count }} kwenye kundi la “{% for key, label in filters.items %}{% if key == current %}{{ label }}{% endif %}{% endfor %}”</p></div>
+  <a class="btn btn-gold" href="{% url 'loan_apply' %}"><svg><use href="#i-file-plus"/></svg>Omba mkopo</a>
 </div>
-<nav class="tabs">
-  {% for key, label in filters.items %}<a href="?hali={{ key }}" class="{% if key == current %}on{% endif %}">{{ label }}</a>{% endfor %}
+
+<nav class="tabs" aria-label="Hali ya mkopo">
+  {% for key, label in filters.items %}
+    <a href="?hali={{ key }}" class="{% if key == current %}on{% endif %}">{{ label }}
+      {% if key == 'inasubiri' and nav_counts.pending %}<span class="n">{{ nav_counts.pending }}</span>{% endif %}
+      {% if key == 'imethibitishwa' and nav_counts.approved %}<span class="n">{{ nav_counts.approved }}</span>{% endif %}
+      {% if key == 'sugu' and nav_counts.overdue %}<span class="n">{{ nav_counts.overdue }}</span>{% endif %}
+    </a>
+  {% endfor %}
 </nav>
-<form class="filters" method="get">
+
+<form class="filters collapsible" method="get">
+  <div class="filters-summary">
+    <span class="text-muted" style="font-size:.88rem">{% if q %}Unatafuta “{{ q }}”{% else %}Tafuta kwa jina au simu{% endif %}</span>
+    <button type="button" class="btn btn-ghost btn-sm" data-filters-toggle><svg><use href="#i-search"/></svg>Tafuta</button>
+  </div>
   <input type="hidden" name="hali" value="{{ current }}">
-  <div class="field"><label for="q">Tafuta mteja</label><input type="search" id="q" name="q" value="{{ q }}" placeholder="Jina au simu"></div>
+  <div class="field grow"><label for="q">Tafuta mteja</label><input type="search" id="q" name="q" value="{{ q }}" placeholder="Jina au namba ya simu"></div>
   {% include "_branch_select.html" %}
-  <button class="btn btn-dark" type="submit">Chuja</button>
+  <button class="btn btn-dark" type="submit"><svg><use href="#i-search"/></svg>Tafuta</button>
 </form>
-<div class="panel table-wrap"><table>
-  <thead><tr><th>Mteja</th><th>Tawi</th><th class="num">Mkopo</th><th class="num">Amelipa</th><th class="num">Deni</th><th>Kumaliza</th><th>Hali</th><th></th></tr></thead>
-  <tbody>
-  {% for l in page %}
-    <tr>
-      <td><a href="{% url 'loan_detail' l.pk %}">{{ l.customer }}</a><span class="sub">{{ l.number }}, {{ l.customer.phone }}</span></td>
-      <td>{{ l.branch }}</td>
-      <td class="num">{{ l.principal|money }}</td><td class="num">{{ l.paid_total|money }}</td>
-      <td class="num"><strong>{{ l.balance_total|money }}</strong></td>
-      <td>{{ l.due_date|date:"j M Y"|default:"—" }}{% if l.is_overdue %}<span class="sub text-red">siku {{ l.days_overdue }} nyuma</span>{% endif %}</td>
-      <td><span class="badge {{ l.display_status|status_class }}">{{ l.display_status_label }}</span></td>
-      <td>{% if l.status == 'ACTIVE' %}<a class="btn btn-gold btn-sm" href="{% url 'loan_detail' l.pk %}#lipa">Lipa</a>{% endif %}</td>
-    </tr>
-  {% empty %}<tr><td colspan="8" class="empty">Hakuna mkopo kwenye kundi hili.</td></tr>{% endfor %}
-  </tbody>
-</table>
-{% include "_pagination.html" %}
+
+<div class="panel table-wrap">
+  <table>
+    <thead><tr><th>Mteja</th>{% if user.is_admin %}<th>Tawi</th>{% endif %}<th class="num">Mkopo</th><th class="num m-hide">Amelipa</th><th class="num">Deni</th><th>Kumaliza</th><th>Hali</th><th></th></tr></thead>
+    <tbody>
+    {% for l in page %}
+      <tr data-href="{% url 'loan_detail' l.pk %}">
+        <td><div class="who-cell"><span class="avatar muted">{{ l.customer.first_name|slice:":1" }}{{ l.customer.last_name|slice:":1" }}</span>
+          <div><a href="{% url 'loan_detail' l.pk %}">{{ l.customer }}</a><span class="sub">{{ l.number }} · {{ l.customer.phone }}</span></div></div></td>
+        {% if user.is_admin %}<td>{{ l.branch }}</td>{% endif %}
+        <td class="num">{{ l.principal|money }}</td>
+        <td class="num m-hide">{{ l.paid_total|money }}</td>
+        <td class="num"><strong {% if l.is_overdue %}class="text-red"{% endif %}>{{ l.balance_total|money }}</strong></td>
+        <td class="nowrap">{{ l.due_date|date:"j M Y"|default:"—" }}{% if l.is_overdue %}<span class="sub text-red">siku {{ l.days_overdue }} nyuma</span>{% endif %}</td>
+        <td><span class="badge {{ l.display_status|status_class }}">{{ l.display_status_label }}</span></td>
+        <td class="actions-cell">{% if l.status == 'ACTIVE' %}<a class="btn btn-gold btn-sm" href="{% url 'loan_detail' l.pk %}#lipa"><svg><use href="#i-cash"/></svg>Lipa</a>
+          {% elif l.status == 'PENDING' and user.is_manager %}<a class="btn btn-dark btn-sm" href="{% url 'loan_detail' l.pk %}">Thibitisha</a>
+          {% elif l.status == 'APPROVED' and user.is_manager %}<a class="btn btn-dark btn-sm" href="{% url 'loan_detail' l.pk %}">Toa pesa</a>{% endif %}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="8" class="empty"><div class="empty-state"><div class="ico"><svg><use href="#i-wallet"/></svg></div>
+        <h3>Hakuna mkopo hapa</h3><p>Hakuna mkopo kwenye kundi hili{% if q %} unaolingana na “{{ q }}”{% endif %}.</p>
+        <a class="btn btn-gold" href="{% url 'loan_apply' %}">Omba mkopo mpya</a></div></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% include "_pagination.html" %}
 </div>
 {% endblock %}

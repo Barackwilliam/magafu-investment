@@ -113,3 +113,37 @@ def branch_delete(request, pk):
         branch.delete()
         messages.success(request, f"Tawi {name} limefutwa.")
     return redirect("branch_list")
+
+
+@login_required
+def search(request):
+    """Tafuta mteja au mkopo kutoka popote: jina, simu, NIDA au namba ya mkopo (MG00012)."""
+    from django.db.models import Q
+    from customers.models import Customer
+
+    q = request.GET.get("q", "").strip()
+    customers, loans = [], []
+    if q:
+        digits = "".join(ch for ch in q if ch.isdigit())
+        cq = Q()
+        for word in q.split():
+            cq &= Q(first_name__icontains=word) | Q(middle_name__icontains=word) | Q(last_name__icontains=word)
+        cq |= Q(national_id__icontains=q)
+        if len(digits) >= 4:
+            phone = "0" + digits[3:] if digits.startswith("255") else digits
+            cq |= Q(phone__icontains=phone)
+        customers = list(scope_by_branch(Customer.objects.select_related("branch"), request.user).filter(cq)[:20])
+
+        lq = Q(customer__in=[c.pk for c in customers])
+        upper = q.upper().replace(" ", "")
+        if upper.startswith("MG") and upper[2:].isdigit():
+            lq |= Q(pk=int(upper[2:]))
+        elif q.isdigit() and len(q) <= 6:
+            lq |= Q(pk=int(q))
+        loans = list(scope_by_branch(Loan.objects.with_totals().select_related("customer"), request.user)
+                     .filter(lq).order_by("-applied_at")[:20])
+        if len(customers) + len(loans) == 1:
+            target = customers[0] if customers else loans[0]
+            name = "customer_detail" if customers else "loan_detail"
+            return redirect(name, pk=target.pk)
+    return render(request, "core/search.html", {"q": q, "customers": customers, "loans": loans})

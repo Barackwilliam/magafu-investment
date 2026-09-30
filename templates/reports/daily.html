@@ -3,69 +3,83 @@
 {% block title %}Ripoti ya siku{% endblock %}
 {% block content %}
 <div class="page-head">
-  <div><h1>Ripoti ya siku</h1><p>{{ day|date:"l, j F Y" }}</p></div>
-  <button class="btn btn-ghost" onclick="window.print()">Print</button>
+  <div><div class="eyebrow">Ripoti ya siku</div><h1>{{ day|date:"l, j F Y" }}</h1><p>Kila shilingi iliyoingia na kutoka siku hii.</p></div>
+  <div class="actions"><button class="btn btn-ghost" type="button" onclick="window.print()"><svg><use href="#i-printer"/></svg>Print</button></div>
 </div>
 <form class="filters no-print" method="get">
-  <div class="field"><label for="tarehe">Tarehe</label><input type="date" id="tarehe" name="tarehe" value="{{ day|date:'Y-m-d' }}"></div>
+  <div class="field"><label for="tarehe">Tarehe</label><input type="date" id="tarehe" name="tarehe" value="{{ day|date:'Y-m-d' }}" onchange="this.form.submit()"></div>
   {% include "_branch_select.html" %}
   <button class="btn btn-dark" type="submit">Onyesha</button>
 </form>
 
+<section class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">Salio la mkononi</div>
+      <div class="big {% if net < 0 %}neg{% endif %}"><small>TSh</small>{{ net|money }}</div>
+      <p>Wateja wapya <b style="color:#fff">{{ new_customers }}</b> · mikopo iliyotolewa <b style="color:#fff">{{ disbursed|length }}</b> · malipo <b style="color:#fff">{{ payments|length }}</b></p>
+    </div>
+    <div class="flow">
+      <div class="in"><span>Marejesho</span><b>{{ collected|money }}</b></div>
+      <div class="in"><span>{{ type_labels.FORM_FEE }}</span><b>{{ by_type.FORM_FEE|money }}</b></div>
+      <div class="in"><span>{{ type_labels.CAPITAL_IN }}</span><b>{{ by_type.CAPITAL_IN|money }}</b></div>
+      <div class="out"><span>Mikopo iliyotolewa</span><b>{{ disbursed_sum|money }}</b></div>
+      <div class="out"><span>{{ type_labels.EXPENSE }}</span><b>{{ by_type.EXPENSE|money }}</b></div>
+      <div class="out"><span>{{ type_labels.TO_BANK }}</span><b>{{ by_type.TO_BANK|money }}</b></div>
+    </div>
+  </div>
+</section>
+
 <div class="grid grid-2">
   <section class="panel">
-    <h2 style="margin-bottom:12px">Muhtasari wa fedha</h2>
-    <table>
-      <tbody>
-        <tr><td>Marejesho ya mikopo</td><td class="num text-green">+{{ collected|money }}</td></tr>
-        <tr><td>{{ type_labels.CAPITAL_IN }}</td><td class="num text-green">+{{ by_type.CAPITAL_IN|money }}</td></tr>
-        <tr><td>{{ type_labels.FORM_FEE }}</td><td class="num text-green">+{{ by_type.FORM_FEE|money }}</td></tr>
-        <tr><td>{{ type_labels.VISIT_FEE }}</td><td class="num text-green">+{{ by_type.VISIT_FEE|money }}</td></tr>
-        <tr><td>{{ type_labels.OTHER_INCOME }}</td><td class="num text-green">+{{ by_type.OTHER_INCOME|money }}</td></tr>
-        <tr><td>Mikopo iliyotolewa</td><td class="num text-red">−{{ disbursed_sum|money }}</td></tr>
-        <tr><td>{{ type_labels.EXPENSE }}</td><td class="num text-red">−{{ by_type.EXPENSE|money }}</td></tr>
-        <tr><td>{{ type_labels.TO_BANK }}</td><td class="num text-red">−{{ by_type.TO_BANK|money }}</td></tr>
-      </tbody>
-      <tfoot><tr><td>Salio la mkononi</td><td class="num">TSh {{ net|money }}</td></tr></tfoot>
-    </table>
+    <h2 style="margin-bottom:10px">Muhtasari wa fedha</h2>
+    <dl class="kv">
+      <dt>Marejesho ya mikopo</dt><dd class="text-green">+{{ collected|money }}</dd>
+      <dt>{{ type_labels.CAPITAL_IN }}</dt><dd class="text-green">+{{ by_type.CAPITAL_IN|money }}</dd>
+      <dt>{{ type_labels.FORM_FEE }}</dt><dd class="text-green">+{{ by_type.FORM_FEE|money }}</dd>
+      <dt>{{ type_labels.VISIT_FEE }}</dt><dd class="text-green">+{{ by_type.VISIT_FEE|money }}</dd>
+      <dt>{{ type_labels.OTHER_INCOME }}</dt><dd class="text-green">+{{ by_type.OTHER_INCOME|money }}</dd>
+      <dt>Mikopo iliyotolewa</dt><dd class="text-red">−{{ disbursed_sum|money }}</dd>
+      <dt>{{ type_labels.EXPENSE }}</dt><dd class="text-red">−{{ by_type.EXPENSE|money }}</dd>
+      <dt>{{ type_labels.TO_BANK }}</dt><dd class="text-red">−{{ by_type.TO_BANK|money }}</dd>
+      <dt><strong style="color:var(--ink)">Salio la mkononi</strong></dt><dd><strong>TSh {{ net|money }}</strong></dd>
+    </dl>
   </section>
   <section class="panel">
-    <h2 style="margin-bottom:12px">Marejesho kwa njia ya malipo</h2>
-    <table><tbody>
-      {% for label, amount in by_method %}<tr><td>{{ label }}</td><td class="num">{{ amount|money }}</td></tr>
-      {% empty %}<tr><td class="empty">Hakuna marejesho siku hii.</td></tr>{% endfor %}
-    </tbody></table>
-    <p class="text-muted" style="margin:16px 0 0">Wateja wapya: <strong>{{ new_customers }}</strong>, mikopo iliyotolewa: <strong>{{ disbursed|length }}</strong>, malipo: <strong>{{ payments|length }}</strong></p>
+    <h2 style="margin-bottom:10px">Marejesho kwa njia ya malipo</h2>
+    {% if by_method %}
+    <dl class="kv">{% for label, amount in by_method %}<dt>{{ label }}</dt><dd>{{ amount|money }}</dd>{% endfor %}</dl>
+    {% else %}<div class="empty-state" style="padding:24px"><div class="ico"><svg><use href="#i-cash"/></svg></div><p>Hakuna marejesho siku hii.</p></div>{% endif %}
   </section>
 </div>
 
-<section class="panel">
-  <h2 style="margin-bottom:12px">Mikopo iliyotolewa</h2>
-  <div class="table-wrap"><table>
+<section class="panel table-wrap" style="margin-top:18px">
+  <div class="panel-head" style="padding:20px 20px 0"><h2>Mikopo iliyotolewa</h2></div>
+  <table>
     <thead><tr><th>Mteja</th><th>Mkopo</th><th class="num">Kiasi</th><th class="num">Jumla ya kulipa</th><th>Kumaliza</th></tr></thead>
     <tbody>{% for l in disbursed %}<tr><td><a href="{% url 'loan_detail' l.pk %}">{{ l.customer }}</a></td><td>{{ l.number }}</td>
-      <td class="num">{{ l.principal|money }}</td><td class="num">{{ l.total_payable|money }}</td><td>{{ l.due_date|date:"j M Y" }}</td></tr>
+      <td class="num">{{ l.principal|money }}</td><td class="num">{{ l.total_payable|money }}</td><td class="nowrap">{{ l.due_date|date:"j M Y" }}</td></tr>
     {% empty %}<tr><td colspan="5" class="empty">Hakuna mkopo uliotolewa siku hii.</td></tr>{% endfor %}</tbody>
-  </table></div>
+  </table>
 </section>
 
-<section class="panel">
-  <h2 style="margin-bottom:12px">Marejesho</h2>
-  <div class="table-wrap"><table>
-    <thead><tr><th>Muda</th><th>Mteja</th><th>Njia</th><th>Amepokea</th><th class="num">Kiasi</th></tr></thead>
-    <tbody>{% for r in payments %}<tr><td>{{ r.paid_at|date:"H:i" }}</td><td><a href="{% url 'loan_detail' r.loan_id %}">{{ r.loan.customer }}</a></td>
-      <td>{{ r.get_method_display }}</td><td>{{ r.received_by|default:"" }}</td><td class="num">{{ r.amount|money }}</td></tr>
+<section class="panel table-wrap">
+  <div class="panel-head" style="padding:20px 20px 0"><h2>Marejesho</h2></div>
+  <table>
+    <thead><tr><th>Mteja</th><th>Muda</th><th>Njia</th><th>Amepokea</th><th class="num">Kiasi</th></tr></thead>
+    <tbody>{% for r in payments %}<tr><td><a href="{% url 'loan_detail' r.loan_id %}">{{ r.loan.customer }}</a></td><td>{{ r.paid_at|date:"H:i" }}</td>
+      <td>{{ r.get_method_display }}</td><td>{{ r.received_by|default:"" }}</td><td class="num"><strong class="text-green">{{ r.amount|money }}</strong></td></tr>
     {% empty %}<tr><td colspan="5" class="empty">Hakuna marejesho siku hii.</td></tr>{% endfor %}</tbody>
-  </table></div>
+  </table>
 </section>
 
-<section class="panel">
-  <h2 style="margin-bottom:12px">Miamala mingine</h2>
-  <div class="table-wrap"><table>
+<section class="panel table-wrap">
+  <div class="panel-head" style="padding:20px 20px 0"><h2>Miamala mingine</h2></div>
+  <table>
     <thead><tr><th>Aina</th><th>Maelezo</th><th class="num">Kiasi</th></tr></thead>
-    <tbody>{% for e in entries %}<tr><td>{{ e.get_entry_type_display }}</td><td>{{ e.description|default:"" }}{% if e.customer %} ({{ e.customer }}){% endif %}</td>
-      <td class="num {% if e.is_inflow %}text-green{% else %}text-red{% endif %}">{% if e.is_inflow %}+{% else %}−{% endif %}{{ e.amount|money }}</td></tr>
+    <tbody>{% for e in entries %}<tr><td>{{ e.get_entry_type_display }}</td><td>{{ e.description|default:"—" }}{% if e.customer %} ({{ e.customer }}){% endif %}</td>
+      <td class="num"><strong class="{% if e.is_inflow %}text-green{% else %}text-red{% endif %}">{% if e.is_inflow %}+{% else %}−{% endif %}{{ e.amount|money }}</strong></td></tr>
     {% empty %}<tr><td colspan="3" class="empty">Hakuna miamala mingine siku hii.</td></tr>{% endfor %}</tbody>
-  </table></div>
+  </table>
 </section>
 {% endblock %}

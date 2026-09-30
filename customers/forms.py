@@ -21,9 +21,12 @@ class CustomerForm(forms.ModelForm):
             del self.fields["branch"]
         else:
             self.fields["branch"].queryset = Branch.objects.filter(is_active=True)
+            self.fields["branch"].empty_label = "Chagua tawi…"
         if not self.instance.pk:
             del self.fields["is_active"]
-        self.fields["phone"].widget.attrs["placeholder"] = "07XXXXXXXX"
+        self.fields["phone"].widget.attrs.update({"placeholder": "07XXXXXXXX", "inputmode": "tel", "autocomplete": "off"})
+        self.fields["guarantor_phone"].widget.attrs.update({"placeholder": "07XXXXXXXX", "inputmode": "tel"})
+        self.fields["gender"].choices = [("", "Chagua jinsia…")] + list(Customer.Gender.choices)
 
     def clean(self):
         data = super().clean()

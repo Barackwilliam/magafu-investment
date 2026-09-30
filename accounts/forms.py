@@ -32,6 +32,7 @@ class UserForm(forms.ModelForm):
         self.fields["first_name"].required = True
         self.fields["username"].help_text = ""
         self.fields["branch"].queryset = Branch.objects.filter(is_active=True)
+        self.fields["branch"].empty_label = "Matawi yote (kwa admin)"
         if self.instance.pk:
             self.fields["password1"].help_text = "Acha wazi kama hutaki kubadilisha nenosiri."
         else:

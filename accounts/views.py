@@ -46,4 +46,5 @@ def user_form(request, pk=None):
         "form": form,
         "title": f"Hariri {instance}" if instance else "Ongeza mtumiaji",
         "back": reverse("user_list"),
+        "sections": {"first_name": "Taarifa za mfanyakazi", "role": "Nafasi na tawi", "password1": "Nenosiri"},
     })

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load magafu %}
+{% block title %}Tafuta{% endblock %}
+{% block content %}
+<div class="search-page">
+  <div class="page-head"><div><h1>Tafuta</h1><p>Mteja kwa jina, simu au NIDA. Mkopo kwa namba yake, mfano MG00012.</p></div></div>
+  <form method="get" role="search">
+    <input type="search" name="q" value="{{ q }}" placeholder="Andika hapa…" autofocus autocomplete="off" aria-label="Tafuta">
+    <button class="btn btn-gold" type="submit"><svg><use href="#i-search"/></svg><span class="hide-mobile">Tafuta</span></button>
+  </form>
+  {% if q %}
+    {% if not customers and not loans %}
+      <div class="panel empty-state"><div class="ico"><svg><use href="#i-search"/></svg></div><h3>Hakuna kilichopatikana</h3><p>Hakuna mteja wala mkopo unaolingana na “{{ q }}”.</p>
+        <a class="btn btn-gold" href="{% url 'customer_create' %}">Sajili mteja mpya</a></div>
+    {% endif %}
+    {% if customers %}
+    <section class="panel result-group">
+      <h2>Wateja · {{ customers|length }}</h2>
+      <div class="list">
+      {% for c in customers %}
+        <a class="list-item" href="{% url 'customer_detail' c.pk %}">
+          <span class="avatar muted">{{ c.first_name|slice:":1" }}{{ c.last_name|slice:":1" }}</span>
+          <span class="grow"><strong>{{ c.full_name }}</strong><span class="sub">{{ c.phone }} · {{ c.branch }}</span></span>
+          <svg width="18" height="18" style="color:var(--muted)"><use href="#i-chevron-right"/></svg>
+        </a>
+      {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+    {% if loans %}
+    <section class="panel result-group">
+      <h2>Mikopo · {{ loans|length }}</h2>
+      <div class="list">
+      {% for l in loans %}
+        <a class="list-item" href="{% url 'loan_detail' l.pk %}">
+          <span class="avatar muted"><svg width="18" height="18"><use href="#i-wallet"/></svg></span>
+          <span class="grow"><strong>{{ l.number }} · {{ l.customer }}</strong><span class="sub">{{ l.applied_at|date:"j M Y" }} · <span class="badge {{ l.display_status|status_class }}" style="padding:1px 8px">{{ l.display_status_label }}</span></span></span>
+          <span class="end"><b>{{ l.balance_total|money }}</b><span class="sub">deni</span></span>
+        </a>
+      {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

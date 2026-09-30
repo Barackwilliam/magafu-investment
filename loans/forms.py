@@ -28,8 +28,9 @@ class LoanProductForm(forms.ModelForm):
 
 
 class LoanApplicationForm(forms.Form):
-    customer = forms.ModelChoiceField(label="Mteja", queryset=Customer.objects.none())
-    product = forms.ModelChoiceField(label="Aina ya mkopo", queryset=LoanProduct.objects.filter(is_active=True))
+    customer = forms.ModelChoiceField(label="Mteja", queryset=Customer.objects.none(), empty_label="Chagua mteja…")
+    product = forms.ModelChoiceField(label="Aina ya mkopo", queryset=LoanProduct.objects.filter(is_active=True),
+                                     empty_label="Chagua aina ya mkopo…")
     principal = forms.DecimalField(label="Kiasi cha mkopo (TSh)", max_digits=14, decimal_places=0, min_value=1)
     form_fee_paid = forms.BooleanField(label="Mteja amelipa ada ya fomu sasa", required=False, initial=True)
     notes = forms.CharField(label="Maelezo", required=False, widget=forms.Textarea(attrs={"rows": 3}))

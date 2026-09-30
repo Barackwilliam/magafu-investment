@@ -1,12 +1,24 @@
-{% if form.non_field_errors %}<div class="alert alert-error">{% for e in form.non_field_errors %}{{ e }} {% endfor %}</div>{% endif %}
+{% if form.non_field_errors %}<div class="alert alert-error"><svg><use href="#i-alert"/></svg><div>{% for e in form.non_field_errors %}{{ e }} {% endfor %}</div></div>{% endif %}
 <div class="fields">
 {% for field in form.visible_fields %}
-  <div class="field{% if field.field.widget.input_type == 'checkbox' %} field-check{% endif %}{% if field.field.widget.attrs.rows or field.name == 'description' or field.name == 'notes' %} field-wide{% endif %}{% if field.errors %} has-error{% endif %}">
-    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required and field.field.widget.input_type != 'checkbox' %} <span class="req">*</span>{% endif %}</label>
+  {% if sections %}{% for name, heading in sections.items %}{% if name == field.name %}<div class="form-section">{{ heading }}</div>{% endif %}{% endfor %}{% endif %}
+  {% if field.field.widget.input_type == 'checkbox' %}
+  <div class="field field-check{% if field.errors %} has-error{% endif %}">
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
     {{ field }}
     {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
     {% for e in field.errors %}<small class="err">{{ e }}</small>{% endfor %}
   </div>
+  {% else %}
+  <div class="field{% if field.field.widget.attrs.rows or field.name == 'description' or field.name == 'notes' %} field-wide{% endif %}{% if field.errors %} has-error{% endif %}">
+    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="req">*</span>{% endif %}</label>
+    {% if field.name in "amount principal form_fee penalty_per_day min_amount max_amount" %}
+      <div class="input-money"><span>TSh</span>{{ field }}</div>
+    {% else %}{{ field }}{% endif %}
+    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+    {% for e in field.errors %}<small class="err">{{ e }}</small>{% endfor %}
+  </div>
+  {% endif %}
 {% endfor %}
 </div>
 {% for h in form.hidden_fields %}{{ h }}{% endfor %}

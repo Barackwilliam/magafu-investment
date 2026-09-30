@@ -65,4 +65,6 @@ def customer_form(request, pk=None):
         "title": f"Hariri {instance}" if instance else "Sajili mteja mpya",
         "back": reverse("customer_detail", args=[pk]) if pk else reverse("customer_list"),
         "submit": "Hifadhi mteja",
+        "sections": {"first_name": "Taarifa binafsi", "address": "Makazi na kazi",
+                     "guarantor_name": "Mdhamini", "is_active": "Hali"},
     })

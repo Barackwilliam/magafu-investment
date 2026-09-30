@@ -2,32 +2,44 @@
 {% block title %}Wateja{% endblock %}
 {% block content %}
 <div class="page-head">
-  <div><h1>Wateja</h1><p>{{ page.paginator.count }} waliopatikana</p></div>
-  <a class="btn btn-gold" href="{% url 'customer_create' %}">Sajili mteja</a>
+  <div><h1>Wateja</h1><p>{{ page.paginator.count }} {% if q %}wanaolingana na “{{ q }}”{% else %}waliosajiliwa{% endif %}</p></div>
+  <a class="btn btn-gold" href="{% url 'customer_create' %}"><svg><use href="#i-user-plus"/></svg>Sajili mteja</a>
 </div>
-<form class="filters" method="get">
-  <div class="field"><label for="q">Tafuta</label><input type="search" id="q" name="q" value="{{ q }}" placeholder="Jina au namba ya simu"></div>
+<form class="filters collapsible" method="get">
+  <div class="filters-summary">
+    <span class="text-muted" style="font-size:.88rem">{% if q %}Unatafuta “{{ q }}”{% else %}Tafuta, chuja kwa jinsia au tawi{% endif %}</span>
+    <button type="button" class="btn btn-ghost btn-sm" data-filters-toggle><svg><use href="#i-filter"/></svg>Chuja</button>
+  </div>
+  <div class="field grow"><label for="q">Tafuta</label><input type="search" id="q" name="q" value="{{ q }}" placeholder="Jina au namba ya simu"></div>
   <div class="field"><label for="jinsia">Jinsia</label>
     <select name="jinsia" id="jinsia"><option value="">Wote</option>
       <option value="F" {% if request.GET.jinsia == 'F' %}selected{% endif %}>Wanawake</option>
       <option value="M" {% if request.GET.jinsia == 'M' %}selected{% endif %}>Wanaume</option></select></div>
   {% include "_branch_select.html" %}
-  <button class="btn btn-dark" type="submit">Chuja</button>
+  <button class="btn btn-dark" type="submit"><svg><use href="#i-search"/></svg>Chuja</button>
 </form>
-<div class="panel table-wrap"><table>
-  <thead><tr><th>Jina</th><th>Simu</th><th>Tawi</th><th>Kazi</th><th class="num">Mikopo</th><th>Hali</th><th>Alisajiliwa</th></tr></thead>
-  <tbody>
-  {% for c in page %}
-    <tr>
-      <td><a href="{% url 'customer_detail' c.pk %}">{{ c.full_name }}</a></td>
-      <td>{{ c.phone }}</td><td>{{ c.branch }}</td><td>{{ c.occupation }}</td>
-      <td class="num">{{ c.loans_count }}</td>
-      <td>{% if c.active_count %}<span class="badge st-active">Anadaiwa</span>{% elif c.loans_count %}<span class="badge st-done">Hana deni</span>{% else %}<span class="badge st-muted">Mpya</span>{% endif %}</td>
-      <td>{{ c.created_at|date:"j M Y" }}</td>
-    </tr>
-  {% empty %}<tr><td colspan="7" class="empty">Hakuna mteja aliyepatikana. <a href="{% url 'customer_create' %}">Sajili mteja mpya</a>.</td></tr>{% endfor %}
-  </tbody>
-</table>
-{% include "_pagination.html" %}
+<div class="panel table-wrap">
+  <table>
+    <thead><tr><th>Mteja</th><th>Simu</th>{% if user.is_admin %}<th>Tawi</th>{% endif %}<th class="m-hide">Kazi</th><th class="num m-hide">Mikopo</th><th>Hali</th><th class="m-hide">Alisajiliwa</th></tr></thead>
+    <tbody>
+    {% for c in page %}
+      <tr data-href="{% url 'customer_detail' c.pk %}">
+        <td><div class="who-cell"><span class="avatar muted">{{ c.first_name|slice:":1" }}{{ c.last_name|slice:":1" }}</span>
+          <div><a href="{% url 'customer_detail' c.pk %}">{{ c.full_name }}</a><span class="sub">{{ c.address|default:c.get_gender_display }}</span></div></div></td>
+        <td class="nowrap"><a href="tel:{{ c.phone }}" style="font-weight:500">{{ c.phone }}</a></td>
+        {% if user.is_admin %}<td>{{ c.branch }}</td>{% endif %}
+        <td class="m-hide">{{ c.occupation|default:"—" }}</td>
+        <td class="num m-hide">{{ c.loans_count }}</td>
+        <td>{% if not c.is_active %}<span class="badge st-muted">Amezimwa</span>{% elif c.active_count %}<span class="badge st-active">Anadaiwa</span>{% elif c.loans_count %}<span class="badge st-done">Hana deni</span>{% else %}<span class="badge st-info">Mpya</span>{% endif %}</td>
+        <td class="nowrap m-hide">{{ c.created_at|date:"j M Y" }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7" class="empty"><div class="empty-state"><div class="ico"><svg><use href="#i-users"/></svg></div>
+        <h3>Hakuna mteja aliyepatikana</h3><p>{% if q %}Jaribu jina au namba nyingine.{% else %}Anza kwa kusajili mteja wa kwanza.{% endif %}</p>
+        <a class="btn btn-gold" href="{% url 'customer_create' %}">Sajili mteja mpya</a></div></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% include "_pagination.html" %}
 </div>
 {% endblock %}

@@ -1,15 +1,20 @@
 {% load static magafu %}<!doctype html>
-<html lang="sw"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Statement {{ loan.number }}</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<html lang="sw" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Statement {{ loan.number }} · {{ loan.customer }}</title>
+<link rel="icon" type="image/png" href="{% static 'img/icon-96.png' %}">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/app.css' %}"></head>
-<body style="background:#fff">
-<div class="print-page">
+<body style="background:#EFECE5">
+<div class="print-page" style="margin:24px auto;border-radius:18px;box-shadow:0 20px 60px -30px rgba(0,0,0,.4)">
   <div class="print-head">
-    <div><h1>Statement ya mkopo</h1><p class="text-muted" style="margin:4px 0 0">{{ COMPANY_NAME }}{% if COMPANY_PHONE %}, {{ COMPANY_PHONE }}{% endif %}</p></div>
-    <img src="{% static 'img/logo.jpeg' %}" alt="">
+    <div>
+      <div style="font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#8A5F00;font-weight:600">Statement ya mkopo</div>
+      <h1 style="margin-top:6px;color:#111">{{ loan.number }}</h1>
+      <p style="margin:4px 0 0;color:#666">{{ COMPANY_NAME }}{% if COMPANY_PHONE %} · {{ COMPANY_PHONE }}{% endif %}</p>
+    </div>
+    <img src="{% static 'img/logo-full.webp' %}" alt="{{ COMPANY_NAME }}">
   </div>
-  <div class="grid grid-2">
+  <div class="grid grid-2" style="gap:28px">
     <dl class="kv">
       <dt>Mteja</dt><dd>{{ loan.customer.full_name }}</dd>
       <dt>Simu</dt><dd>{{ loan.customer.phone }}</dd>
@@ -17,13 +22,13 @@
       <dt>Tawi</dt><dd>{{ loan.branch }}</dd>
     </dl>
     <dl class="kv">
-      <dt>Namba ya mkopo</dt><dd>{{ loan.number }}</dd>
+      <dt>Aina ya mkopo</dt><dd>{{ loan.product.name }}</dd>
       <dt>Ulitolewa</dt><dd>{{ loan.disbursed_at|date:"j M Y"|default:"—" }}</dd>
       <dt>Kumaliza</dt><dd>{{ loan.due_date|date:"j M Y"|default:"—" }}</dd>
       <dt>Hali</dt><dd>{{ loan.display_status_label }}</dd>
     </dl>
   </div>
-  <table style="margin-top:22px">
+  <table class="no-stack" style="margin-top:26px">
     <thead><tr><th>Tarehe</th><th>Maelezo</th><th class="num">Deni</th><th class="num">Malipo</th></tr></thead>
     <tbody>
       <tr><td>{{ loan.disbursed_at|date:"j M Y"|default:"—" }}</td><td>Mkopo</td><td class="num">{{ loan.principal|money }}</td><td></td></tr>
@@ -33,14 +38,17 @@
     </tbody>
     <tfoot>
       <tr><td colspan="2">Jumla</td><td class="num">{{ loan.total_payable|add:loan.penalties|money }}</td><td class="num">{{ loan.amount_paid|money }}</td></tr>
-      <tr><td colspan="3">Deni lililobaki</td><td class="num">TSh {{ loan.balance|money }}</td></tr>
+      <tr><td colspan="3" style="font-size:1.05rem">Deni lililobaki</td><td class="num" style="font-size:1.05rem">TSh {{ loan.balance|money }}</td></tr>
     </tfoot>
   </table>
-  <p class="text-muted" style="margin-top:26px;font-size:.85rem">Imetolewa {{ now|date:"j M Y, H:i" }}.</p>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:50px">
+  <p style="margin-top:22px;font-size:.82rem;color:#777">Imetolewa {{ now|date:"j M Y, H:i" }}.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:56px;color:#444">
     <div style="border-top:1px solid #999;padding-top:6px">Sahihi ya mteja</div>
     <div style="border-top:1px solid #999;padding-top:6px">Sahihi ya afisa</div>
   </div>
-  <div class="no-print" style="margin-top:28px"><button class="btn btn-gold" onclick="window.print()">Print</button></div>
+  <div class="no-print" style="margin-top:28px;display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn btn-gold" onclick="window.print()">Print / Hifadhi PDF</button>
+    <a class="btn btn-ghost" href="{% url 'loan_detail' loan.pk %}">Rudi kwenye mkopo</a>
+  </div>
 </div>
 </body></html>

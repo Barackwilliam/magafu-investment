@@ -1,26 +1,64 @@
 {% load static %}<!doctype html>
-<html lang="sw">
+<html lang="sw" data-theme="light">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ingia | {{ COMPANY_NAME }}</title>
-  <link rel="icon" href="{% static 'img/logo.jpeg' %}">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#070708">
+  <title>Ingia · {{ COMPANY_NAME }}</title>
+  <script>
+    (function () { try {
+      var t = localStorage.getItem("magafu-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {} })();
+  </script>
+  <link rel="icon" type="image/png" sizes="96x96" href="{% static 'img/icon-96.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+  <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
 </head>
 <body>
-<div class="login-page">
-  <div class="login-art"><img src="{% static 'img/logo.jpeg' %}" alt="{{ COMPANY_NAME }}"></div>
-  <div class="login-box">
-    <form method="post" class="panel" novalidate>{% csrf_token %}
+{% include "_icons.html" %}
+<div class="auth">
+  <section class="auth-art" aria-hidden="false">
+    <img class="logo" src="{% static 'img/logo-full.webp' %}" alt="{{ COMPANY_NAME }}" width="640" height="435">
+    <div>
+      <h2>Kila shilingi,<br><span>kwenye mstari.</span></h2>
+      <ul class="points" style="margin-top:28px">
+        <li><svg><use href="#i-shield"/></svg><div><b>Malipo salama</b>Hakuna malipo mara mbili, hakuna deni linalozidi.</div></li>
+        <li><svg><use href="#i-zap"/></svg><div><b>Takwimu za papo hapo</b>Makusanyo ya leo, madeni sugu na salio la mkononi.</div></li>
+        <li><svg><use href="#i-building"/></svg><div><b>Matawi yote, sehemu moja</b>Kila afisa anaona tawi lake, admin anaona yote.</div></li>
+      </ul>
+    </div>
+    <div class="foot">© {% now "Y" %} {{ COMPANY_NAME }}. Haki zote zimehifadhiwa.</div>
+  </section>
+
+  <section class="auth-panel">
+    <form method="post" class="auth-card" novalidate>{% csrf_token %}
       <h1>Karibu tena</h1>
       <p>Ingia kuendelea na kazi za leo.</p>
-      {% if form.non_field_errors %}<div class="alert alert-error">{{ form.non_field_errors.0 }}</div>{% endif %}
-      <div class="field"><label for="id_username">Jina la mtumiaji</label>{{ form.username }}</div>
-      <div class="field"><label for="id_password">Nenosiri</label>{{ form.password }}</div>
+      {% if form.non_field_errors %}
+        <div class="alert alert-error"><svg><use href="#i-alert"/></svg><div>{{ form.non_field_errors.0 }}</div></div>
+      {% endif %}
+      <div class="field">
+        <label for="id_username">Jina la mtumiaji</label>
+        <input type="text" name="username" id="id_username" value="{{ form.username.value|default:'' }}" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" autofocus required>
+      </div>
+      <div class="field">
+        <label for="id_password">Nenosiri</label>
+        <div class="pw">
+          <input type="password" name="password" id="id_password" autocomplete="current-password" required>
+          <button type="button" aria-label="Onyesha nenosiri"><svg class="see"><use href="#i-eye"/></svg><svg class="hide"><use href="#i-eye-off"/></svg></button>
+        </div>
+      </div>
       <input type="hidden" name="next" value="{{ next }}">
-      <button class="btn btn-gold" type="submit">Ingia</button>
+      <button class="btn btn-gold btn-lg btn-block" type="submit">Ingia<svg><use href="#i-arrow-right"/></svg></button>
+      <div class="secure"><svg><use href="#i-lock"/></svg>Muunganiko salama · {{ COMPANY_NAME }}</div>
     </form>
-  </div>
+  </section>
 </div>
+<script src="{% static 'js/app.js' %}" defer></script>
 </body>
 </html>

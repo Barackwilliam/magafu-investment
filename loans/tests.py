@@ -231,3 +231,26 @@ class BugFixTests(Fixtures):
         self.client.get(reverse("dashboard"))
         self.client.get(reverse("dashboard"))
         self.assertEqual(loan.penalty_entries.count(), 1)
+
+
+class DeployTests(TestCase):
+    def test_production_static_files_build(self):
+        """BUG: faili la JS lilitaja source map isiyokuwepo, na collectstatic ya Render ingeshindwa."""
+        import tempfile
+        from django.core.management import call_command
+        from django.test import override_settings
+        with tempfile.TemporaryDirectory() as tmp, override_settings(
+            STATIC_ROOT=tmp,
+            STORAGES={"default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+                      "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"}},
+        ):
+            call_command("collectstatic", interactive=False, verbosity=0)
+
+    def test_search_finds_customer_and_loan_number(self):
+        from core.models import Branch
+        b = Branch.objects.create(name="Tawi")
+        User.objects.create_user("a", password="pass1234", role="ADMIN")
+        c = Customer.objects.create(branch=b, first_name="Rehema", last_name="Lema", gender="F", phone="0712000999")
+        self.client.login(username="a", password="pass1234")
+        r = self.client.get(reverse("search"), {"q": "+255 712 000 999"})
+        self.assertRedirects(r, reverse("customer_detail", args=[c.pk]))

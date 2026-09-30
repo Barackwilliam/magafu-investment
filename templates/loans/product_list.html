@@ -3,19 +3,25 @@
 {% block title %}Aina za mikopo{% endblock %}
 {% block content %}
 <div class="page-head">
-  <div><h1>Aina za mikopo</h1><p>Mabadiliko hapa yanaathiri mikopo mipya tu. Mikopo iliyopo inabaki na masharti yake.</p></div>
-  <a class="btn btn-gold" href="{% url 'product_create' %}">Ongeza aina</a>
+  <div><h1>Aina za mikopo</h1><p>Mabadiliko yanaathiri mikopo mipya tu. Mikopo iliyopo inabaki na masharti yake.</p></div>
+  <a class="btn btn-gold" href="{% url 'product_create' %}"><svg><use href="#i-plus"/></svg>Ongeza aina</a>
 </div>
-<div class="panel table-wrap"><table>
-  <thead><tr><th>Jina</th><th class="num">Riba</th><th class="num">Siku</th><th>Marejesho</th><th class="num">Ada ya fomu</th><th class="num">Faini/siku</th><th>Kiwango</th><th>Hali</th><th></th></tr></thead>
-  <tbody>
-  {% for p in products %}
-    <tr><td>{{ p.name }}</td><td class="num">{{ p.interest_rate|floatformat:"-2" }}%</td><td class="num">{{ p.duration_days }}</td>
-      <td>{{ p.get_repayment_frequency_display }}</td><td class="num">{{ p.form_fee|money }}</td><td class="num">{{ p.penalty_per_day|money }}</td>
-      <td>{{ p.min_amount|money }} hadi {% if p.max_amount %}{{ p.max_amount|money }}{% else %}bila kikomo{% endif %}</td>
-      <td>{% if p.is_active %}<span class="badge st-done">Inatumika</span>{% else %}<span class="badge st-muted">Imezimwa</span>{% endif %}</td>
-      <td><a class="btn btn-ghost btn-sm" href="{% url 'product_edit' p.pk %}">Hariri</a></td></tr>
-  {% empty %}<tr><td colspan="9" class="empty">Hakuna aina ya mkopo. <a href="{% url 'product_create' %}">Ongeza ya kwanza</a>.</td></tr>{% endfor %}
-  </tbody>
-</table></div>
+<div class="mcards" style="margin-bottom:18px">
+{% for p in products %}
+  <article class="mcard{% if not p.is_active %} muted{% endif %}" {% if not p.is_active %}style="opacity:.65"{% endif %}>
+    <header><span class="ico"><svg><use href="#i-tag"/></svg></span><h3>{{ p.name }}</h3>
+      <span style="margin-left:auto">{% if p.is_active %}<span class="badge st-done">Inatumika</span>{% else %}<span class="badge st-muted">Imezimwa</span>{% endif %}</span></header>
+    <b class="mcard-num">{{ p.interest_rate|floatformat:"-2" }}% <small class="text-muted" style="font-size:.9rem;font-weight:500">· siku {{ p.duration_days }}</small></b>
+    <dl>
+      <dt>Marejesho</dt><dd>{{ p.get_repayment_frequency_display }}</dd>
+      <dt>Ada ya fomu</dt><dd>{{ p.form_fee|money }}</dd>
+      <dt>Faini kwa siku</dt><dd>{{ p.penalty_per_day|money }}</dd>
+      <dt>Kiwango</dt><dd>{{ p.min_amount|money }} – {% if p.max_amount %}{{ p.max_amount|money }}{% else %}∞{% endif %}</dd>
+    </dl>
+    <a class="mcard-link" href="{% url 'product_edit' p.pk %}"><svg width="15" height="15"><use href="#i-edit"/></svg>Hariri</a>
+  </article>
+{% empty %}
+  <div class="panel empty-state" style="grid-column:1/-1"><div class="ico"><svg><use href="#i-tag"/></svg></div><h3>Hakuna aina ya mkopo</h3><p>Ongeza aina ya kwanza ili uanze kutoa mikopo.</p><a class="btn btn-gold" href="{% url 'product_create' %}">Ongeza aina</a></div>
+{% endfor %}
+</div>
 {% endblock %}
