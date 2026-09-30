@@ -254,3 +254,24 @@ class DeployTests(TestCase):
         self.client.login(username="a", password="pass1234")
         r = self.client.get(reverse("search"), {"q": "+255 712 000 999"})
         self.assertRedirects(r, reverse("customer_detail", args=[c.pk]))
+
+
+class CustomerPagePaymentTests(Fixtures):
+    def test_pay_from_customer_page_returns_there(self):
+        """Mtumiaji anarekodi malipo kutoka ukurasa wa mteja, bila kwenda ukurasa wa mkopo."""
+        loan = self._active_loan()
+        self.client.login(username="afisa", password="pass1234")
+        page = self.client.get(reverse("customer_detail", args=[self.c1.pk])).content.decode()
+        self.assertIn("Rekodi malipo aliyoleta", page)
+        back = reverse("customer_detail", args=[self.c1.pk]) + "#lipa"
+        r = self.client.post(reverse("loan_pay", args=[loan.pk]), {"amount": "5000", "method": "CASH", "next": back})
+        self.assertRedirects(r, back, fetch_redirect_response=False)
+        loan = Loan.objects.with_totals().get(pk=loan.pk)
+        self.assertEqual(loan.paid_total, Decimal(5000))
+        self.assertIn("5,000", self.client.get(back).content.decode())
+
+    def test_next_cannot_redirect_off_site(self):
+        loan = self._active_loan()
+        self.client.login(username="afisa", password="pass1234")
+        r = self.client.post(reverse("loan_pay", args=[loan.pk]), {"amount": "5000", "method": "CASH", "next": "https://evil.example/"})
+        self.assertRedirects(r, reverse("loan_detail", args=[loan.pk]), fetch_redirect_response=False)

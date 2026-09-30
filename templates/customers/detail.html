@@ -18,17 +18,63 @@
   </div>
 </div>
 
-{% if open_loan %}
+{% if open_loan and open_loan.status == 'ACTIVE' %}
+<section class="hero" id="lipa" style="scroll-margin-top:84px">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">Deni analodaiwa sasa · {{ open_loan.number }}</div>
+      <div class="big {% if open_loan.is_overdue %}neg{% endif %}"><small>TSh</small>{{ open_loan.balance_total|money }}</div>
+      <div class="progress" style="margin:14px 0 8px"><span style="width:{{ open_loan.progress }}%"></span></div>
+      <p>Amelipa <b style="color:#fff">TSh {{ open_loan.paid_total|money }}</b> kati ya {{ open_loan.total_payable|add:open_loan.penalty_total|money }} · <b style="color:#fff">{{ open_loan.progress }}%</b></p>
+      <div class="flow" style="margin-top:16px">
+        <div><span>Rejesho {{ open_loan.get_repayment_frequency_display|lower }}</span><b>{{ open_loan.installment_amount|money }}</b></div>
+        <div><span>Kumaliza</span><b {% if open_loan.is_overdue %}style="color:#FF8B80"{% endif %}>{{ open_loan.due_date|date:"j M Y" }}</b></div>
+        <div><span>Yuko nyuma kwa</span><b {% if open_loan.arrears %}style="color:#FF8B80"{% endif %}>{{ open_loan.arrears|money }}</b></div>
+      </div>
+    </div>
+    <form method="post" action="{% url 'loan_pay' open_loan.pk %}" class="inline-form" style="background:var(--surface);color:var(--ink);border-radius:18px;padding:20px">{% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.path }}#lipa">
+      <h2>Rekodi malipo aliyoleta</h2>
+      <div class="field">
+        <label for="id_amount">Kiasi alicholipa</label>
+        <div class="input-money"><span>TSh</span><input type="number" name="amount" id="id_amount" min="1" max="{{ open_loan.balance_total|floatformat:0 }}" inputmode="numeric" placeholder="mf. 5000" required></div>
+        <div class="quick-amounts">
+          <button type="button" data-amount="{{ open_loan.installment_amount|floatformat:0 }}" data-target="id_amount">Rejesho · {{ open_loan.installment_amount|money }}</button>
+          <button type="button" data-amount="{{ open_loan.balance_total|floatformat:0 }}" data-target="id_amount">Deni lote · {{ open_loan.balance_total|money }}</button>
+        </div>
+      </div>
+      <div class="field"><label for="id_method">Njia ya malipo</label>
+        <select name="method" id="id_method">{% for v, l in methods %}<option value="{{ v }}">{{ l }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="id_reference">Namba ya muamala <span class="text-muted" style="font-weight:400">(si lazima)</span></label>
+        <input name="reference" id="id_reference" autocomplete="off"></div>
+      <button class="btn btn-gold btn-lg btn-block"><svg><use href="#i-check"/></svg>Hifadhi malipo</button>
+    </form>
+  </div>
+</section>
+{% elif open_loan %}
 <a class="panel" href="{% url 'loan_detail' open_loan.pk %}" style="display:flex;align-items:center;gap:16px;text-decoration:none;border-color:color-mix(in srgb, var(--gold) 45%, var(--line))">
   <span class="kpi" style="padding:0;border:0;box-shadow:none;background:none;flex:1;min-width:0">
     <span class="label">{{ open_loan.number }} · {{ open_loan.get_status_display }}</span>
-    <span class="value">TSh {{ open_loan.balance_total|money }}</span>
-    <span class="foot">{% if open_loan.status == 'ACTIVE' %}Deni lililobaki · kumaliza {{ open_loan.due_date|date:"j M Y" }}{% else %}Kiasi kinachoombwa {{ open_loan.principal|money }}{% endif %}</span>
+    <span class="value">TSh {{ open_loan.principal|money }}</span>
+    <span class="foot">Mkopo bado haujatolewa. Fungua ili {% if open_loan.status == 'PENDING' %}uuthibitishe{% else %}utoe pesa{% endif %}; baada ya hapo utarekodi malipo hapa.</span>
   </span>
   <span class="badge {{ open_loan.display_status|status_class }}">{{ open_loan.display_status_label }}</span>
   <svg width="20" height="20" style="color:var(--muted)"><use href="#i-chevron-right"/></svg>
 </a>
 {% endif %}
+
+<section class="panel table-wrap">
+  <div class="panel-head" style="padding:20px 20px 0"><div><h2>Malipo yake</h2><p>Kila rejesho alilolipa, la karibuni kwanza.</p></div></div>
+  <table>
+    <thead><tr><th>Tarehe</th><th>Mkopo</th><th>Njia</th><th>Amepokea</th><th class="num">Kiasi</th></tr></thead>
+    <tbody>
+    {% for r in repayments %}
+      <tr><td class="nowrap">{{ r.paid_at|date:"j M Y, H:i" }}</td><td>{{ r.loan.number }}</td><td>{{ r.get_method_display }}{% if r.reference %}<span class="sub">{{ r.reference }}</span>{% endif %}</td>
+        <td>{{ r.received_by|default:"" }}</td><td class="num"><strong class="text-green">{{ r.amount|money }}</strong></td></tr>
+    {% empty %}<tr><td colspan="5" class="empty">Bado hajalipa chochote.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</section>
 
 <div class="grid grid-2">
   <section class="panel">

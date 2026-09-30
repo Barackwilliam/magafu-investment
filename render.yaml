@@ -18,7 +18,7 @@ services:
       - key: DEBUG
         value: "False"
       - key: ADMIN_URL
-        value: mfumo-ndani/
+        value: admin/
       - key: COMPANY_NAME
         value: Magafu Investment
       - key: COMPANY_PHONE
