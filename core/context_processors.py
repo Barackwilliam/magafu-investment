@@ -4,7 +4,8 @@ from django.utils import timezone
 
 
 def company(request):
-    return {"COMPANY_NAME": settings.COMPANY_NAME, "COMPANY_PHONE": settings.COMPANY_PHONE}
+    return {"COMPANY_NAME": settings.COMPANY_NAME, "COMPANY_PHONE": settings.COMPANY_PHONE,
+            "ONE_STEP": settings.LOAN_ONE_STEP}
 
 
 # url_name -> ufunguo wa menyu. Kwa kurasa zenye ?hali= au ?aina=, ufunguo unatoka kwenye query.

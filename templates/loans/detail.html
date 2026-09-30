@@ -61,7 +61,7 @@
   {% if user.is_manager %}
     <div class="grid grid-2">
       <div class="actions">
-        {% if loan.status == 'PENDING' %}
+        {% if loan.status == 'PENDING' and not ONE_STEP %}
           <form method="post" action="{% url 'loan_approve' loan.pk %}">{% csrf_token %}<button class="btn btn-gold btn-lg"><svg><use href="#i-badge-check"/></svg>Thibitisha mkopo</button></form>
         {% else %}
           <form method="post" action="{% url 'loan_disburse' loan.pk %}" data-confirm="Thibitisha kwamba mteja amekabidhiwa TSh {{ loan.principal|money }}.">{% csrf_token %}<button class="btn btn-gold btn-lg"><svg><use href="#i-send"/></svg>Toa pesa kwa mteja</button></form>

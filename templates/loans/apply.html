@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% load magafu %}
-{% block title %}Omba mkopo{% endblock %}
+{% block title %}Toa mkopo{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'loan_list' %}"><svg><use href="#i-chevron-left"/></svg>Mikopo</a>
-<div class="page-head"><div><h1>Omba mkopo</h1><p>Ombi litasubiri meneja alithibitishe kabla pesa kutolewa.</p></div></div>
+<div class="page-head"><div><h1>Toa mkopo</h1><p>{% if ONE_STEP %}Ukihifadhi, mteja anaanza kudaiwa papo hapo na utarekodi malipo yake kwenye ukurasa wake.{% else %}Ombi litasubiri meneja alithibitishe kabla pesa kutolewa.{% endif %}</p></div></div>
 <div class="grid grid-3">
   <form method="post" class="panel span-2" novalidate>{% csrf_token %}
     {% include "_form_fields.html" %}
     <div class="form-actions">
-      <button class="btn btn-gold btn-lg" type="submit"><svg><use href="#i-send"/></svg>Tuma ombi</button>
+      <button class="btn btn-gold btn-lg" type="submit"><svg><use href="#i-send"/></svg>{% if ONE_STEP %}Toa mkopo{% else %}Tuma ombi{% endif %}</button>
       <a class="btn btn-ghost btn-lg" href="{% url 'loan_list' %}">Ghairi</a>
     </div>
   </form>

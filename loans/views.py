@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -73,13 +74,18 @@ def loan_apply(request):
     if request.method == "POST" and form.is_valid():
         d = form.cleaned_data
         try:
-            loan = services.create_loan(
+            make = services.give_loan if settings.LOAN_ONE_STEP else services.create_loan
+            loan = make(
                 customer=d["customer"], product=d["product"], principal=d["principal"],
                 user=request.user, notes=d["notes"], form_fee_paid=d["form_fee_paid"],
             )
         except services.LoanError as e:
             form.add_error(None, str(e))
         else:
+            if settings.LOAN_ONE_STEP:
+                messages.success(request, f"Mkopo {loan.number} umetolewa. Deni ni TSh {loan.total_payable:,.0f}, "
+                                          f"kumaliza kabla ya {loan.due_date:%d/%m/%Y}. Rekodi malipo hapa akileta pesa.")
+                return redirect(reverse("customer_detail", args=[loan.customer_id]) + "#lipa")
             messages.success(request, f"Ombi la mkopo {loan.number} limepokelewa. Linasubiri kuthibitishwa.")
             return redirect("loan_detail", pk=loan.pk)
     products = LoanProduct.objects.filter(is_active=True)
@@ -133,8 +139,10 @@ def loan_reject(request, pk):
 @require_POST
 @manager_required
 def loan_disburse(request, pk):
-    _loan_or_404(request, pk)
+    existing = _loan_or_404(request, pk)
     try:
+        if settings.LOAN_ONE_STEP and existing.status == Loan.Status.PENDING:
+            services.approve_loan(pk, request.user)
         loan = services.disburse_loan(pk, request.user)
         messages.success(request, f"Mkopo umetolewa. Mteja anatakiwa kumaliza kabla ya {loan.due_date:%d/%m/%Y}.")
     except services.LoanError as e:

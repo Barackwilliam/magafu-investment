@@ -113,6 +113,10 @@ LOGOUT_REDIRECT_URL = "login"
 # Django admin imefichwa kwenye URL hii (kwa developer tu)
 ADMIN_URL = os.environ.get("ADMIN_URL", "admin/")
 
+# Hatua moja: "Toa mkopo" unaanza kudaiwa papo hapo (bila kuthibitisha na kutoa pesa kando).
+# Weka LOAN_ONE_STEP=False kama kuna meneja anayethibitisha mikopo ya wafanyakazi.
+LOAN_ONE_STEP = env_bool("LOAN_ONE_STEP", True)
+
 COMPANY_NAME = os.environ.get("COMPANY_NAME", "Magafu Investment")
 COMPANY_PHONE = os.environ.get("COMPANY_PHONE", "")
 

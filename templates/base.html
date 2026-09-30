@@ -46,7 +46,7 @@
       <a href="{% url 'customer_create' %}" class="{% if nav == 'customer_new' %}active{% endif %}"><svg><use href="#i-user-plus"/></svg>Sajili mteja</a>
 
       <div class="nav-label">Mikopo</div>
-      <a href="{% url 'loan_apply' %}" class="{% if nav == 'loan_apply' %}active{% endif %}"><svg><use href="#i-file-plus"/></svg>Omba mkopo</a>
+      <a href="{% url 'loan_apply' %}" class="{% if nav == 'loan_apply' %}active{% endif %}"><svg><use href="#i-file-plus"/></svg>Toa mkopo</a>
       <a href="{% url 'loan_list' %}?hali=inasubiri" class="{% if nav == 'loans_inasubiri' %}active{% endif %}"><svg><use href="#i-clock"/></svg>Zinasubiri{% if nc.pending %}<span class="count gold">{{ nc.pending }}</span>{% endif %}</a>
       <a href="{% url 'loan_list' %}?hali=imethibitishwa" class="{% if nav == 'loans_imethibitishwa' %}active{% endif %}"><svg><use href="#i-badge-check"/></svg>Tayari kutolewa{% if nc.approved %}<span class="count gold">{{ nc.approved }}</span>{% endif %}</a>
       <a href="{% url 'loan_list' %}?hali=hai" class="{% if nav == 'loans_hai' %}active{% endif %}"><svg><use href="#i-wallet"/></svg>Wanaodaiwa</a>
@@ -104,7 +104,7 @@
       <button type="button" class="icon-btn theme-toggle" data-theme-toggle aria-label="Badilisha mwanga au giza" title="Mwanga / giza">
         <svg class="moon"><use href="#i-moon"/></svg><svg class="sun"><use href="#i-sun"/></svg>
       </button>
-      <a class="btn btn-gold hide-mobile" href="{% url 'loan_apply' %}"><svg><use href="#i-plus"/></svg>Omba mkopo</a>
+      <a class="btn btn-gold hide-mobile" href="{% url 'loan_apply' %}"><svg><use href="#i-plus"/></svg>Toa mkopo</a>
 
       <div class="menu" data-popmenu>
         <button type="button" class="icon-btn" style="padding:0;border:0;background:none" aria-haspopup="true" aria-expanded="false" aria-label="Akaunti yangu">
@@ -139,7 +139,7 @@
     <h2>Unataka kufanya nini?</h2>
     <div class="sheet-grid">
       <a href="{% url 'customer_create' %}"><span class="ico"><svg><use href="#i-user-plus"/></svg></span>Sajili mteja<small>Mteja mpya na mdhamini</small></a>
-      <a href="{% url 'loan_apply' %}"><span class="ico"><svg><use href="#i-file-plus"/></svg></span>Omba mkopo<small>Ombi jipya la mkopo</small></a>
+      <a href="{% url 'loan_apply' %}"><span class="ico"><svg><use href="#i-file-plus"/></svg></span>Toa mkopo<small>Mkopo mpya kwa mteja</small></a>
       <a href="{% url 'loan_list' %}?hali=hai"><span class="ico"><svg><use href="#i-cash"/></svg></span>Pokea malipo<small>Chagua mteja anayedaiwa</small></a>
       <a href="{% url 'cash_create' %}?aina=EXPENSE"><span class="ico"><svg><use href="#i-receipt"/></svg></span>Rekodi matumizi<small>Gharama za ofisi</small></a>
       <a href="{% url 'report_daily' %}"><span class="ico"><svg><use href="#i-calendar"/></svg></span>Ripoti ya leo<small>Muhtasari wa siku</small></a>
