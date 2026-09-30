@@ -71,7 +71,9 @@
       {% if u.is_admin %}
       <div class="nav-label">Mipangilio</div>
       <a href="{% url 'branch_list' %}" class="{% if nav == 'branches' %}active{% endif %}"><svg><use href="#i-building"/></svg>Matawi</a>
+      {% comment %}
       <a href="{% url 'user_list' %}" class="{% if nav == 'users' %}active{% endif %}"><svg><use href="#i-id"/></svg>Wafanyakazi</a>
+      {% endcomment %}
       <a href="{% url 'product_list' %}" class="{% if nav == 'products' %}active{% endif %}"><svg><use href="#i-tag"/></svg>Aina za mikopo</a>
       {% endif %}
     </nav>
