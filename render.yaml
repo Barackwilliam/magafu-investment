@@ -1,0 +1,35 @@
+# Render Blueprint: New + > Blueprint > chagua repo hii.
+# Render itauliza DATABASE_URL (ya Supabase) wakati wa kuunda.
+services:
+  - type: web
+    name: magafu
+    runtime: python
+    plan: free
+    region: frankfurt
+    buildCommand: bash build.sh
+    startCommand: gunicorn config.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ADMIN_URL
+        value: mfumo-ndani/
+      - key: COMPANY_NAME
+        value: Magafu Investment
+      - key: COMPANY_PHONE
+        sync: false
+      - key: SMS_ENABLED
+        value: "False"
+      - key: SMS_ON_PAYMENT
+        value: "True"
+      - key: SMS_SENDER_ID
+        value: MAGAFU
+      - key: BEEM_API_KEY
+        sync: false
+      - key: BEEM_SECRET_KEY
+        sync: false

@@ -14,13 +14,57 @@ python manage.py runserver
 Fungua http://127.0.0.1:8000 na uingie. Superuser anatambuliwa kama Admin moja kwa moja.
 Bila `DATABASE_URL`, mfumo unatumia SQLite.
 
+## Kuunganisha Supabase
+
+1. Fungua [supabase.com](https://supabase.com) → **New project**. Chagua region iliyo karibu na Render
+   (mfano **Frankfurt / eu-central-1**) na hifadhi **Database password** mahali salama.
+2. Project ikiwa tayari: bonyeza **Connect** juu ya ukurasa.
+3. Chagua **Session pooler** (si "Direct connection"). Render haina IPv6, na Direct connection ya
+   Supabase inatumia IPv6 tu, kwa hiyo haitaunganika.
+4. Nakili URL. Inafanana na hii:
+   ```
+   postgresql://postgres.abcdefghijkl:[YOUR-PASSWORD]@aws-0-eu-central-1.pooler.supabase.com:5432/postgres
+   ```
+   Badilisha `[YOUR-PASSWORD]` kwa password yako (bila mabano `[ ]`). Kama password ina alama
+   kama `@ # / ?`, ibadilishe kwanza au i-encode (`@` → `%40`, `#` → `%23`).
+   Tumia port **5432** (Session pooler), si 6543.
+
+Hii ndiyo `DATABASE_URL`. Hakuna haja ya kuunda table kwenye Supabase: `migrate` inaziunda wakati wa deploy.
+
 ## Kupeleka Render
-1. Web Service: Build `./build.sh`, Start `gunicorn config.wsgi:application`
-2. Weka environment variables kutoka `.env.example` (`DATABASE_URL` ya Supabase, `SECRET_KEY`, `DEBUG=False`)
-3. Baada ya deploy ya kwanza, kwenye Shell: `python manage.py createsuperuser`
-4. Cron jobs (Render Cron Job, kila asubuhi, mfano `0 4 * * *` UTC = saa 1 asubuhi EAT):
-   - `python manage.py apply_penalties`
-   - `python manage.py send_reminders`
+
+**Njia rahisi (Blueprint):**
+1. [dashboard.render.com](https://dashboard.render.com) → **New +** → **Blueprint** → chagua repo hii.
+2. Render itasoma `render.yaml` na kukuuliza `DATABASE_URL` (weka ile ya Supabase hapo juu),
+   `COMPANY_PHONE`, na funguo za Beem (unaweza kuziacha wazi kwa sasa).
+   `SECRET_KEY` inatengenezwa na Render yenyewe.
+3. Bonyeza **Apply**. Build inaendesha `build.sh`: install, collectstatic, migrate, setup_magafu.
+4. Deploy ikimaliza, fungua tab ya **Shell** ya service na uendeshe:
+   ```bash
+   python manage.py createsuperuser
+   ```
+   Huyu ndiye Admin wa mfumo. Kisha fungua `https://magafu.onrender.com` (au jina Render lililokupa).
+
+**Njia ya mkono (bila Blueprint):** New + → **Web Service** → repo hii, Runtime **Python**,
+Build `bash build.sh`, Start `gunicorn config.wsgi:application`, kisha weka environment variables
+kutoka `.env.example` (`DATABASE_URL`, `SECRET_KEY` ndefu ya siri, `DEBUG=False`, `PYTHON_VERSION=3.12.7`).
+`ALLOWED_HOSTS` na `CSRF_TRUSTED_ORIGINS` za `*.onrender.com` zinawekwa moja kwa moja; ziweke tu
+ukiongeza domain yako mwenyewe.
+
+**Kumbuka kuhusu mpango wa bure (free):** service inalala ikikaa dakika 15 bila mtu, na ombi la kwanza
+baada ya hapo linachukua karibu dakika 1. Kwa kazi ya kila siku ya ofisi, mpango wa **Starter** unafaa zaidi.
+
+**Cron jobs (hiari, zinalipiwa Render):** New + → **Cron Job**, repo hii, Build `pip install -r requirements.txt`,
+ratiba `0 4 * * *` (UTC = saa 1 asubuhi EAT), `DATABASE_URL` na `SECRET_KEY` zile zile:
+- `python manage.py apply_penalties`
+- `python manage.py send_reminders`
+
+Bila cron, vikumbusho vinaweza kutumwa kwa kitufe ndani ya mfumo.
+
+**Kama deploy ikishindwa:**
+- `connection ... Network is unreachable` → umetumia Direct connection. Tumia **Session pooler**.
+- `password authentication failed` → password si sahihi, au user si `postgres.<project-ref>`.
+- `Bad Request (400)` → unatumia domain yako; iongeze kwenye `ALLOWED_HOSTS` na `CSRF_TRUSTED_ORIGINS`.
 
 ## Roles
 | Kazi | Afisa | Meneja | Admin |
