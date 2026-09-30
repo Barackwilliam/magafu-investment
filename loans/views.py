@@ -9,8 +9,8 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from core.models import Branch
-from core.utils import (admin_required, branch_filter, branch_required, manager_required,
-                        paginate, scope_by_branch)
+from core.utils import (Sheet, admin_required, branch_filter, branch_required, excel_response,
+                        manager_required, paginate, scope_by_branch, wants_excel)
 from sms.services import send_reminder
 
 from . import services
@@ -58,6 +58,17 @@ def loan_list(request):
     if q:
         qs = qs.filter(Q(customer__first_name__icontains=q) | Q(customer__last_name__icontains=q)
                        | Q(customer__phone__icontains=q))
+    if wants_excel(request):
+        return excel_response(f"mikopo_{key}_{timezone.localdate()}.xlsx", Sheet(
+            FILTERS[key][0],
+            ["Namba", "Mteja", "Simu", "Tawi", "Aina", "Mkopo", "Riba", "Jumla ya kulipa", "Faini", "Amelipa",
+             "Deni", "Kutolewa", "Kumaliza", "Siku za kuchelewa", "Hali"],
+            [[l.number, l.customer.full_name, l.customer.phone, l.branch.name, l.product.name, l.principal,
+              l.interest_amount, l.total_payable, l.penalty_total, l.paid_total, l.balance_total,
+              timezone.localtime(l.disbursed_at).date() if l.disbursed_at else None, l.due_date,
+              l.days_overdue, l.display_status_label] for l in qs.select_related("product")],
+            title=f"Mikopo: {FILTERS[key][0]}",
+        ))
     return render(request, "loans/list.html", {
         "page": paginate(request, qs), "filters": {k: v[0] for k, v in FILTERS.items()},
         "current": key, "q": q,

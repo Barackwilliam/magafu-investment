@@ -295,3 +295,36 @@ class OneStepLoanTests(Fixtures):
         self.client.post(reverse("loan_disburse", args=[loan.pk]))
         loan.refresh_from_db()
         self.assertEqual(loan.status, Loan.Status.ACTIVE)
+
+
+class ExcelExportTests(Fixtures):
+    def test_every_report_downloads_a_real_excel_file(self):
+        from io import BytesIO
+        from openpyxl import load_workbook
+        loan = self._active_loan()
+        services.record_payment(loan.pk, amount=Decimal(20000), user=self.officer)
+        CashEntry.objects.create(branch=self.b1, entry_type="EXPENSE", amount=5000, recorded_by=self.officer)
+        urls = ["customer_list", "loan_list", "cash_list", "report_daily", "report_collections",
+                "report_disbursements", "report_overdue", "report_branches"]
+        self.client.login(username="admin", password="pass1234")
+        for name in urls:
+            r = self.client.get(reverse(name), {"export": "xlsx"})
+            self.assertEqual(r["Content-Type"],
+                             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", name)
+            self.assertIn(".xlsx", r["Content-Disposition"], name)
+            wb = load_workbook(BytesIO(r.content))
+            self.assertTrue(wb.sheetnames, name)
+        # namba ni namba halisi (zinajumlishika), si maandishi
+        wb = load_workbook(BytesIO(self.client.get(reverse("report_collections"), {"export": "xlsx"}).content))
+        ws = wb.active
+        amounts = [row[4] for row in ws.iter_rows(min_row=6, values_only=True) if row[1]]
+        self.assertIn(20000, amounts)
+
+    def test_officer_export_only_contains_own_branch(self):
+        from io import BytesIO
+        from openpyxl import load_workbook
+        self.client.login(username="afisa", password="pass1234")
+        wb = load_workbook(BytesIO(self.client.get(reverse("customer_list"), {"export": "xlsx"}).content))
+        names = [row[0] for row in wb.active.iter_rows(min_row=6, values_only=True)]
+        self.assertIn("Hawa Musa", names)
+        self.assertNotIn("Juma Ali", names)

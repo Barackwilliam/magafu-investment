@@ -9,7 +9,7 @@
     <form method="post" action="{% url 'sms_remind_overdue' %}" data-confirm="Tuma SMS ya kikumbusho kwa wateja wote {{ rows|length }}?">{% csrf_token %}
       <button class="btn btn-dark"><svg><use href="#i-message"/></svg>Kumbusha wote</button></form>
     {% endif %}
-    <a class="btn btn-ghost" href="?export=csv{% if request.GET.tawi %}&tawi={{ request.GET.tawi }}{% endif %}"><svg><use href="#i-download"/></svg>Pakua Excel</a>
+    <a class="btn btn-ghost" href="?export=xlsx{% if request.GET.tawi %}&tawi={{ request.GET.tawi }}{% endif %}"><svg><use href="#i-download"/></svg>Pakua Excel</a>
   </div>
 </div>
 <div class="stats">

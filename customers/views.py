@@ -5,7 +5,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from core.models import Branch
-from core.utils import branch_filter, branch_required, paginate, scope_by_branch
+from core.utils import (Sheet, branch_filter, branch_required, excel_response, paginate,
+                        scope_by_branch, wants_excel)
 from loans.models import Loan, Repayment
 
 from .forms import CustomerForm
@@ -29,6 +30,17 @@ def customer_list(request):
         active_count=Count("loans", filter=Q(loans__status=Loan.Status.ACTIVE)),
         active_loan_id=Max("loans__id", filter=Q(loans__status=Loan.Status.ACTIVE)),
     ).order_by("-created_at")
+    if wants_excel(request):
+        from django.utils import timezone
+        return excel_response(f"wateja_{timezone.localdate()}.xlsx", Sheet(
+            "Wateja",
+            ["Jina", "Simu", "Jinsia", "NIDA", "Makazi", "Kazi", "Tawi", "Mdhamini", "Simu ya mdhamini",
+             "Uhusiano", "Mikopo", "Anadaiwa sasa", "Alisajiliwa"],
+            [[c.full_name, c.phone, c.get_gender_display(), c.national_id, c.address, c.occupation, c.branch.name,
+              c.guarantor_name, c.guarantor_phone, c.guarantor_relation, c.loans_count,
+              "Ndiyo" if c.active_count else "Hapana", timezone.localtime(c.created_at).date()] for c in qs],
+            title="Orodha ya wateja",
+        ))
     return render(request, "customers/list.html", {
         "page": paginate(request, qs),
         "q": q,

@@ -19,7 +19,7 @@
     {% for v, l in methods %}<option value="{{ v }}" {% if v == method %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
   {% include "_branch_select.html" %}
   <button class="btn btn-dark" type="submit">Onyesha</button>
-  <button class="btn btn-ghost" type="submit" name="export" value="csv"><svg><use href="#i-download"/></svg>Pakua Excel</button>
+  <button class="btn btn-ghost" type="submit" name="export" value="xlsx"><svg><use href="#i-download"/></svg>Pakua Excel</button>
 </form>
 <div class="panel table-wrap">
   <table>

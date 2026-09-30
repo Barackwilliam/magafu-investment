@@ -4,7 +4,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from core.models import Branch
-from core.utils import branch_filter, branch_required, date_range, manager_required, paginate, scope_by_branch, total
+from core.utils import (Sheet, branch_filter, branch_required, date_range, excel_response, manager_required,
+                        paginate, scope_by_branch, total, wants_excel)
 
 from .forms import CashEntryForm
 from .models import CashEntry
@@ -20,6 +21,15 @@ def cash_list(request):
         qs = qs.filter(entry_type=aina)
     inflow = total(qs.filter(entry_type__in=CashEntry.INFLOWS))
     outflow = total(qs.filter(entry_type__in=CashEntry.OUTFLOWS))
+    if wants_excel(request):
+        return excel_response(f"daftari_la_fedha_{start}_{end}.xlsx", Sheet(
+            "Daftari la fedha",
+            ["Tarehe", "Aina", "Maelezo", "Mteja", "Tawi", "Amerekodi", "Zilizoingia", "Zilizotoka"],
+            [[e.date, e.get_entry_type_display(), e.description, str(e.customer or ""), e.branch.name,
+              str(e.recorded_by or ""), e.amount if e.is_inflow else None, None if e.is_inflow else e.amount]
+             for e in qs],
+            totals=["Jumla", "", "", "", "", "", inflow, outflow], title="Daftari la fedha",
+        ), subtitle=f"Kuanzia {start:%d/%m/%Y} mpaka {end:%d/%m/%Y}")
     return render(request, "finance/cash_list.html", {
         "page": paginate(request, qs),
         "start": start, "end": end, "aina": aina,
