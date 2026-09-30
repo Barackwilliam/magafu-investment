@@ -1,0 +1,8 @@
+{% if branches %}
+<div class="field"><label for="tawi">Tawi</label>
+  <select name="tawi" id="tawi">
+    <option value="">Matawi yote</option>
+    {% for b in branches %}<option value="{{ b.pk }}" {% if request.GET.tawi == b.pk|stringformat:"d" %}selected{% endif %}>{{ b }}</option>{% endfor %}
+  </select>
+</div>
+{% endif %}

@@ -1,0 +1,8 @@
+{% load magafu %}
+{% if page.paginator.num_pages > 1 %}
+<nav class="pagination" aria-label="Kurasa">
+  {% if page.has_previous %}<a href="{% query_with page=page.previous_page_number %}">Nyuma</a>{% endif %}
+  <span class="current">{{ page.number }} / {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a href="{% query_with page=page.next_page_number %}">Mbele</a>{% endif %}
+</nav>
+{% endif %}

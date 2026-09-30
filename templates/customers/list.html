@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Wateja{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Wateja</h1><p>{{ page.paginator.count }} waliopatikana</p></div>
+  <a class="btn btn-gold" href="{% url 'customer_create' %}">Sajili mteja</a>
+</div>
+<form class="filters" method="get">
+  <div class="field"><label for="q">Tafuta</label><input type="search" id="q" name="q" value="{{ q }}" placeholder="Jina au namba ya simu"></div>
+  <div class="field"><label for="jinsia">Jinsia</label>
+    <select name="jinsia" id="jinsia"><option value="">Wote</option>
+      <option value="F" {% if request.GET.jinsia == 'F' %}selected{% endif %}>Wanawake</option>
+      <option value="M" {% if request.GET.jinsia == 'M' %}selected{% endif %}>Wanaume</option></select></div>
+  {% include "_branch_select.html" %}
+  <button class="btn btn-dark" type="submit">Chuja</button>
+</form>
+<div class="panel table-wrap"><table>
+  <thead><tr><th>Jina</th><th>Simu</th><th>Tawi</th><th>Kazi</th><th class="num">Mikopo</th><th>Hali</th><th>Alisajiliwa</th></tr></thead>
+  <tbody>
+  {% for c in page %}
+    <tr>
+      <td><a href="{% url 'customer_detail' c.pk %}">{{ c.full_name }}</a></td>
+      <td>{{ c.phone }}</td><td>{{ c.branch }}</td><td>{{ c.occupation }}</td>
+      <td class="num">{{ c.loans_count }}</td>
+      <td>{% if c.active_count %}<span class="badge st-active">Anadaiwa</span>{% elif c.loans_count %}<span class="badge st-done">Hana deni</span>{% else %}<span class="badge st-muted">Mpya</span>{% endif %}</td>
+      <td>{{ c.created_at|date:"j M Y" }}</td>
+    </tr>
+  {% empty %}<tr><td colspan="7" class="empty">Hakuna mteja aliyepatikana. <a href="{% url 'customer_create' %}">Sajili mteja mpya</a>.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% include "_pagination.html" %}
+</div>
+{% endblock %}

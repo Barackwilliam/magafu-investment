@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load magafu %}
+{% block title %}Makusanyo{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Makusanyo</h1><p>Malipo {{ count }} yenye jumla ya <strong>TSh {{ sum|money }}</strong></p></div></div>
+<form class="filters" method="get">
+  <div class="field"><label for="kuanzia">Kuanzia</label><input type="date" id="kuanzia" name="kuanzia" value="{{ start|date:'Y-m-d' }}"></div>
+  <div class="field"><label for="mpaka">Mpaka</label><input type="date" id="mpaka" name="mpaka" value="{{ end|date:'Y-m-d' }}"></div>
+  <div class="field"><label for="njia">Njia</label><select id="njia" name="njia"><option value="">Zote</option>
+    {% for v, l in methods %}<option value="{{ v }}" {% if v == method %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+  {% include "_branch_select.html" %}
+  <button class="btn btn-dark" type="submit">Onyesha</button>
+  <button class="btn btn-ghost" type="submit" name="export" value="csv">Pakua Excel (CSV)</button>
+</form>
+<div class="panel table-wrap"><table>
+  <thead><tr><th>Tarehe</th><th>Mteja</th><th>Njia</th><th>Namba ya muamala</th><th>Tawi</th><th>Amepokea</th><th class="num">Kiasi</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr><td>{{ r.paid_at|date:"j M Y, H:i" }}</td><td><a href="{% url 'loan_detail' r.loan_id %}">{{ r.loan.customer }}</a><span class="sub">{{ r.loan.number }}</span></td>
+      <td>{{ r.get_method_display }}</td><td>{{ r.reference|default:"—" }}</td><td>{{ r.loan.branch }}</td><td>{{ r.received_by|default:"" }}</td>
+      <td class="num">{{ r.amount|money }}</td></tr>
+  {% empty %}<tr><td colspan="7" class="empty">Hakuna malipo kwenye kipindi hiki.</td></tr>{% endfor %}
+  </tbody>
+  {% if rows %}<tfoot><tr><td colspan="6">Jumla</td><td class="num">{{ sum|money }}</td></tr></tfoot>{% endif %}
+</table>
+{% if count > 500 %}<p class="text-muted">Zinaonyeshwa 500 za kwanza. Pakua CSV kupata zote.</p>{% endif %}
+</div>
+{% endblock %}

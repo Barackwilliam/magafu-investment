@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load magafu %}
+{% block title %}Daftari la fedha{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Daftari la fedha</h1><p>Matumizi, ada, pesa zilizoongezwa na zilizopelekwa benki.</p></div>
+  <div class="actions">
+    <a class="btn btn-ghost" href="{% url 'cash_create' %}?aina=EXPENSE">Rekodi matumizi</a>
+    <a class="btn btn-gold" href="{% url 'cash_create' %}">Muamala mpya</a>
+  </div>
+</div>
+<form class="filters" method="get">
+  <div class="field"><label for="kuanzia">Kuanzia</label><input type="date" id="kuanzia" name="kuanzia" value="{{ start|date:'Y-m-d' }}"></div>
+  <div class="field"><label for="mpaka">Mpaka</label><input type="date" id="mpaka" name="mpaka" value="{{ end|date:'Y-m-d' }}"></div>
+  <div class="field"><label for="aina">Aina</label><select id="aina" name="aina"><option value="">Zote</option>
+    {% for v, l in types %}<option value="{{ v }}" {% if v == aina %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+  {% include "_branch_select.html" %}
+  <button class="btn btn-dark" type="submit">Onyesha</button>
+</form>
+<div class="stats" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:18px">
+  <div class="stat"><span>Zilizoingia</span><b class="text-green">{{ inflow|money }}</b></div>
+  <div class="stat"><span>Zilizotoka</span><b class="text-red">{{ outflow|money }}</b></div>
+  <div class="stat"><span>Tofauti</span><b>{{ net|money }}</b><small>bila marejesho na mikopo</small></div>
+</div>
+<div class="panel table-wrap"><table>
+  <thead><tr><th>Tarehe</th><th>Aina</th><th>Maelezo</th><th>Tawi</th><th>Amerekodi</th><th class="num">Kiasi</th><th></th></tr></thead>
+  <tbody>
+  {% for e in page %}
+    <tr><td>{{ e.date|date:"j M Y" }}</td><td>{{ e.get_entry_type_display }}</td>
+      <td>{{ e.description|default:""|truncatechars:60 }}{% if e.customer %}<span class="sub">{{ e.customer }}</span>{% endif %}</td>
+      <td>{{ e.branch }}</td><td>{{ e.recorded_by|default:"" }}</td>
+      <td class="num {% if e.is_inflow %}text-green{% else %}text-red{% endif %}">{% if e.is_inflow %}+{% else %}−{% endif %}{{ e.amount|money }}</td>
+      <td>{% if user.is_manager %}<form method="post" action="{% url 'cash_delete' e.pk %}" data-confirm="Futa muamala huu?">{% csrf_token %}<button class="btn btn-danger btn-sm">Futa</button></form>{% endif %}</td></tr>
+  {% empty %}<tr><td colspan="7" class="empty">Hakuna muamala kwenye kipindi hiki.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% include "_pagination.html" %}
+</div>
+{% endblock %}

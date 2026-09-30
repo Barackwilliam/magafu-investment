@@ -1,0 +1,120 @@
+{% load static %}<!doctype html>
+<html lang="sw">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>{% block title %}{{ title|default:"Mfumo" }}{% endblock %} | {{ COMPANY_NAME }}</title>
+  <link rel="icon" href="{% static 'img/logo.jpeg' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+{% with p=request.path u=request.user %}
+<div class="shell">
+  <aside class="sidebar" id="sidebar" aria-label="Menyu kuu">
+    <button type="button" class="sidebar-close" data-close aria-label="Funga menyu">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    <a class="brand" href="{% url 'dashboard' %}">
+      <img src="{% static 'img/logo.jpeg' %}" alt="">
+      <div><strong>Magafu</strong><span>Investment</span></div>
+    </a>
+    <nav class="nav">
+      {% with fp=request.get_full_path %}
+      <a class="main-link {% if p == '/' %}active{% endif %}" href="{% url 'dashboard' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>Nyumbani</a>
+
+      {% if u.is_admin %}
+      <div class="nav-section {% if '/matawi/' in p or '/watumiaji/' in p or '/mikopo/aina' in p %}open{% endif %}">
+        <a class="main-link" href="{% url 'branch_list' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V8l9-5 9 5v13M9 21v-6h6v6"/></svg>Tawi</a>
+        <div class="sub">
+          <a href="{% url 'branch_list' %}" class="{% if '/matawi/' in p and '/ripoti/' not in p %}active{% endif %}">Matawi yote</a>
+          <a href="{% url 'user_list' %}" class="{% if '/watumiaji/' in p %}active{% endif %}">Wafanyakazi</a>
+          <a href="{% url 'product_list' %}" class="{% if '/mikopo/aina' in p %}active{% endif %}">Aina za mikopo</a>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="nav-section {% if '/wateja/' in p or '/mikopo/omba' in p %}open{% endif %}">
+        <a class="main-link" href="{% url 'customer_create' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M1 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1M19 8v6M16 11h6"/></svg>Sajili Mteja</a>
+        <div class="sub">
+          <a href="{% url 'customer_create' %}" class="{% if p == '/wateja/mpya/' %}active{% endif %}">Mteja mpya</a>
+          <a href="{% url 'loan_apply' %}" class="{% if '/mikopo/omba' in p %}active{% endif %}">Omba mkopo</a>
+          <a href="{% url 'customer_list' %}" class="{% if p == '/wateja/' or '/wateja/' in p and p != '/wateja/mpya/' %}active{% endif %}">Wateja wote</a>
+        </div>
+      </div>
+
+      <div class="nav-section {% if '/fedha/' in p %}open{% endif %}">
+        <a class="main-link" href="{% url 'cash_create' %}?aina=EXPENSE">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM4 9h16M9 4v16"/></svg>Matumizi</a>
+        <div class="sub">
+          <a href="{% url 'cash_create' %}?aina=EXPENSE" class="{% if 'aina=EXPENSE' in fp and '/mpya/' in p %}active{% endif %}">Tumizi jipya</a>
+          <a href="{% url 'cash_create' %}?aina=CAPITAL_IN" class="{% if 'aina=CAPITAL_IN' in fp and '/mpya/' in p %}active{% endif %}">Pesa zilizoongezwa</a>
+          <a href="{% url 'cash_create' %}?aina=TO_BANK" class="{% if 'aina=TO_BANK' in fp and '/mpya/' in p %}active{% endif %}">Pesa kwenda benki</a>
+          <a href="{% url 'cash_list' %}" class="{% if p == '/fedha/' %}active{% endif %}">Daftari la fedha</a>
+        </div>
+      </div>
+
+      <div class="nav-section {% if '/mikopo/' in p and '/mikopo/aina' not in p and '/mikopo/omba' not in p %}open{% endif %}">
+        <a class="main-link" href="{% url 'loan_list' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 10v4M18 10v4"/></svg>Mikopo</a>
+        <div class="sub">
+          <a href="{% url 'loan_list' %}?hali=hai" class="{% if p == '/mikopo/' and 'hali=' not in fp or 'hali=hai' in fp %}active{% endif %}">Wanaodaiwa</a>
+          <a href="{% url 'loan_list' %}?hali=inasubiri" class="{% if 'hali=inasubiri' in fp %}active{% endif %}">Yanasubiri kuthibitishwa</a>
+          <a href="{% url 'loan_list' %}?hali=imethibitishwa" class="{% if 'hali=imethibitishwa' in fp %}active{% endif %}">Tayari kutolewa</a>
+          <a href="{% url 'loan_list' %}?hali=sugu" class="{% if 'hali=sugu' in fp %}active{% endif %}">Nje ya mkataba</a>
+          <a href="{% url 'loan_list' %}?hali=zimeisha" class="{% if 'hali=zimeisha' in fp %}active{% endif %}">Waliomaliza</a>
+        </div>
+      </div>
+
+      <div class="nav-section {% if '/ripoti/' in p or '/sms/' in p %}open{% endif %}">
+        <a class="main-link" href="{% url 'report_daily' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Reports</a>
+        <div class="sub">
+          <a href="{% url 'report_daily' %}" class="{% if '/ripoti/siku' in p %}active{% endif %}">Ripoti ya siku</a>
+          <a href="{% url 'report_collections' %}" class="{% if '/ripoti/makusanyo' in p %}active{% endif %}">Makusanyo</a>
+          <a href="{% url 'report_disbursements' %}" class="{% if '/ripoti/mikopo' in p %}active{% endif %}">Mikopo iliyotolewa</a>
+          <a href="{% url 'report_overdue' %}" class="{% if '/ripoti/madeni' in p %}active{% endif %}">Madeni sugu</a>
+          {% if u.is_admin %}<a href="{% url 'report_branches' %}" class="{% if '/ripoti/matawi' in p %}active{% endif %}">Ripoti ya matawi</a>{% endif %}
+          <a href="{% url 'sms_log' %}" class="{% if '/sms/' in p %}active{% endif %}">SMS</a>
+        </div>
+      </div>
+
+      <form method="post" action="{% url 'logout' %}" class="logout-form">{% csrf_token %}
+        <button type="submit" class="main-link ondoka">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.4 6.6a9 9 0 1 1-12.8 0M12 2v10"/></svg>Ondoka</button>
+      </form>
+      {% endwith %}
+    </nav>
+    <div class="sidebar-foot">
+      <div class="who">{{ u }}</div>
+      <div class="role">{{ u.get_role_display }}{% if u.branch %}, {{ u.branch }}{% endif %}</div>
+      <a href="{% url 'password_change' %}" style="display:inline-block;margin-top:8px">Badilisha nenosiri</a>
+    </div>
+  </aside>
+  <div class="scrim"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button type="button" data-menu aria-label="Fungua menyu" aria-controls="sidebar" aria-expanded="false">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a href="{% url 'dashboard' %}" class="topbar-brand"><img src="{% static 'img/logo.jpeg' %}" alt=""><strong>Magafu</strong></a>
+    </header>
+    <main class="content">
+      {% for m in messages %}<div class="alert alert-{{ m.tags|default:'info' }}">{{ m }}</div>{% endfor %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% endwith %}
+<script src="{% static 'js/app.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

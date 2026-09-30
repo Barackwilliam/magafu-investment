@@ -1,0 +1,12 @@
+{% if form.non_field_errors %}<div class="alert alert-error">{% for e in form.non_field_errors %}{{ e }} {% endfor %}</div>{% endif %}
+<div class="fields">
+{% for field in form.visible_fields %}
+  <div class="field{% if field.field.widget.input_type == 'checkbox' %} field-check{% endif %}{% if field.field.widget.attrs.rows or field.name == 'description' or field.name == 'notes' %} field-wide{% endif %}{% if field.errors %} has-error{% endif %}">
+    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required and field.field.widget.input_type != 'checkbox' %} <span class="req">*</span>{% endif %}</label>
+    {{ field }}
+    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+    {% for e in field.errors %}<small class="err">{{ e }}</small>{% endfor %}
+  </div>
+{% endfor %}
+</div>
+{% for h in form.hidden_fields %}{{ h }}{% endfor %}

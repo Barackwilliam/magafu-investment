@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load magafu %}
+{% block title %}Ripoti ya matawi{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Ripoti ya matawi</h1><p>Mikopo iliyotolewa na makusanyo ni ya kipindi ulichochagua. Madeni ni ya sasa.</p></div></div>
+{% include "_range_form.html" %}
+<div class="panel table-wrap"><table>
+  <thead><tr><th>Tawi</th><th class="num">Wanawake</th><th class="num">Wanaume</th><th class="num">Wateja</th><th class="num">Wanadaiwa</th><th class="num">Wamemaliza</th>
+    <th class="num">Imetolewa</th><th class="num">Makusanyo</th><th class="num">Madeni</th><th class="num">Madeni sugu</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr><td>{{ r.branch }}</td><td class="num">{{ r.women }}</td><td class="num">{{ r.men }}</td><td class="num">{{ r.all }}</td>
+      <td class="num">{{ r.active }}</td><td class="num">{{ r.completed }}</td><td class="num">{{ r.disbursed|money }}</td>
+      <td class="num">{{ r.collected|money }}</td><td class="num">{{ r.outstanding|money }}</td><td class="num text-red">{{ r.overdue|money }}</td></tr>
+  {% endfor %}
+  </tbody>
+  <tfoot><tr><td>Jumla</td><td class="num">{{ totals.women }}</td><td class="num">{{ totals.men }}</td><td class="num">{{ totals.all }}</td>
+    <td class="num">{{ totals.active }}</td><td class="num">{{ totals.completed }}</td><td class="num">{{ totals.disbursed|money }}</td>
+    <td class="num">{{ totals.collected|money }}</td><td class="num">{{ totals.outstanding|money }}</td><td class="num">{{ totals.overdue|money }}</td></tr></tfoot>
+</table></div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load magafu %}
+{% block title %}Mikopo{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Mikopo</h1><p>{{ page.paginator.count }} kwenye orodha hii</p></div>
+  <a class="btn btn-gold" href="{% url 'loan_apply' %}">Omba mkopo</a>
+</div>
+<nav class="tabs">
+  {% for key, label in filters.items %}<a href="?hali={{ key }}" class="{% if key == current %}on{% endif %}">{{ label }}</a>{% endfor %}
+</nav>
+<form class="filters" method="get">
+  <input type="hidden" name="hali" value="{{ current }}">
+  <div class="field"><label for="q">Tafuta mteja</label><input type="search" id="q" name="q" value="{{ q }}" placeholder="Jina au simu"></div>
+  {% include "_branch_select.html" %}
+  <button class="btn btn-dark" type="submit">Chuja</button>
+</form>
+<div class="panel table-wrap"><table>
+  <thead><tr><th>Mteja</th><th>Tawi</th><th class="num">Mkopo</th><th class="num">Amelipa</th><th class="num">Deni</th><th>Kumaliza</th><th>Hali</th><th></th></tr></thead>
+  <tbody>
+  {% for l in page %}
+    <tr>
+      <td><a href="{% url 'loan_detail' l.pk %}">{{ l.customer }}</a><span class="sub">{{ l.number }}, {{ l.customer.phone }}</span></td>
+      <td>{{ l.branch }}</td>
+      <td class="num">{{ l.principal|money }}</td><td class="num">{{ l.paid_total|money }}</td>
+      <td class="num"><strong>{{ l.balance_total|money }}</strong></td>
+      <td>{{ l.due_date|date:"j M Y"|default:"—" }}{% if l.is_overdue %}<span class="sub text-red">siku {{ l.days_overdue }} nyuma</span>{% endif %}</td>
+      <td><span class="badge {{ l.display_status|status_class }}">{{ l.display_status_label }}</span></td>
+      <td>{% if l.status == 'ACTIVE' %}<a class="btn btn-gold btn-sm" href="{% url 'loan_detail' l.pk %}#lipa">Lipa</a>{% endif %}</td>
+    </tr>
+  {% empty %}<tr><td colspan="8" class="empty">Hakuna mkopo kwenye kundi hili.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% include "_pagination.html" %}
+</div>
+{% endblock %}

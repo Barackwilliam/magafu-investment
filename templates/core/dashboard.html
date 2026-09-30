@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% load magafu %}
+{% block title %}Nyumbani{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Habari, {{ user.first_name|default:user.username }}</h1>
+    <p>{{ today|date:"l, j F Y" }}{% if user.branch and not user.is_admin %}, tawi la {{ user.branch }}{% endif %}</p></div>
+  <div class="actions">
+    <a class="btn btn-ghost" href="{% url 'customer_create' %}">Sajili mteja</a>
+    <a class="btn btn-gold" href="{% url 'loan_apply' %}">Omba mkopo</a>
+  </div>
+</div>
+
+<section class="ledger" aria-label="Mzunguko wa fedha wa leo">
+  <div class="ledger-title"><strong>Fedha za leo</strong><span>Mapato ukiondoa matoleo</span></div>
+  <div class="ledger-line">
+    <div class="ledger-item"><b>{{ collected_today|money }}</b><small>Marejesho</small></div>
+    <span class="ledger-op">+</span>
+    <div class="ledger-item"><b>{{ inflow_today|money }}</b><small>Ada na pesa zilizoongezwa</small></div>
+    <span class="ledger-op">−</span>
+    <div class="ledger-item"><b>{{ disbursed_today|money }}</b><small>Mikopo iliyotolewa</small></div>
+    <span class="ledger-op">−</span>
+    <div class="ledger-item"><b>{{ expenses_today|money }}</b><small>Matumizi</small></div>
+    <span class="ledger-op">−</span>
+    <div class="ledger-item"><b>{{ bank_today|money }}</b><small>Benki</small></div>
+    <span class="ledger-op">=</span>
+    <div class="ledger-item result {% if net_today < 0 %}neg{% endif %}"><b>{{ net_today|money }}</b><small>Salio la mkononi</small></div>
+  </div>
+</section>
+
+{% if c.maombi.yanasubiri %}
+<div class="alert alert-info" style="margin-top:18px">
+  Maombi <a href="{% url 'loan_list' %}?hali=inasubiri"><strong>{{ c.maombi.yanasubiri }}</strong> yanasubiri kuthibitishwa</a>.
+</div>
+{% endif %}
+
+<div class="cards">
+  <article class="mcard">
+    <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg><h2>Maombi ya mikopo</h2></header>
+    <b class="mcard-num">{{ c.maombi.jumla }}</b>
+    <dl>
+      <dt>Leo</dt><dd>{{ c.maombi.leo }}</dd>
+      <dt>Mwezi huu</dt><dd>{{ c.maombi.mwezi }}</dd>
+      <dt>Mwaka huu</dt><dd>{{ c.maombi.mwaka }}</dd>
+      <dt>Yanasubiri</dt><dd>{{ c.maombi.yanasubiri }}</dd>
+      <dt>Yamekataliwa</dt><dd>{{ c.maombi.yamekataliwa }}</dd>
+      <dt>Yamekubaliwa</dt><dd>{{ c.maombi.yamekubaliwa }}</dd>
+    </dl>
+    <a class="mcard-link" href="{% url 'loan_list' %}?hali=inasubiri">Fungua</a>
+  </article>
+
+  <article class="mcard">
+    <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M1 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1M17 4a4 4 0 0 1 0 8M23 21v-1a6 6 0 0 0-4-5.7"/></svg><h2>Wateja</h2></header>
+    <b class="mcard-num">{{ c.wateja.jumla }}</b>
+    <dl>
+      <dt>Wapya leo</dt><dd>{{ c.wateja.leo }}</dd>
+      <dt>Mwezi huu</dt><dd>{{ c.wateja.mwezi }}</dd>
+      <dt>Mwaka huu</dt><dd>{{ c.wateja.mwaka }}</dd>
+      <dt>Waliomaliza</dt><dd>{{ c.wateja.waliomaliza }}</dd>
+      <dt>Wanadaiwa</dt><dd>{{ c.wateja.wanadaiwa }}</dd>
+    </dl>
+    <a class="mcard-link" href="{% url 'customer_list' %}">Fungua</a>
+  </article>
+
+  <article class="mcard">
+    <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 10v4M18 10v4"/></svg><h2>Mikopo</h2></header>
+    <b class="mcard-num">{{ c.mikopo.jumla|money }}</b>
+    <dl>
+      <dt>Mkopo leo</dt><dd>{{ c.mikopo.leo|money }}</dd>
+      <dt>Mwezi huu</dt><dd>{{ c.mikopo.mwezi|money }}</dd>
+      <dt>Mwaka huu</dt><dd>{{ c.mikopo.mwaka|money }}</dd>
+      <dt>Wadaiwa ({{ c.mikopo.hai_idadi }})</dt><dd>{{ c.mikopo.wadaiwa|money }}</dd>
+      <dt class="text-red">Nje ya mkataba ({{ c.mikopo.sugu_idadi }})</dt><dd class="text-red">{{ c.mikopo.sugu|money }}</dd>
+      <dt>Waliomaliza</dt><dd>{{ c.mikopo.waliomaliza|money }}</dd>
+    </dl>
+    <a class="mcard-link" href="{% url 'loan_list' %}?hali=hai">Fungua</a>
+  </article>
+
+  <article class="mcard mcard-accent">
+    <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M17 7H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><h2>Makusanyo</h2></header>
+    <b class="mcard-num">{{ c.makusanyo.jumla|money }}</b>
+    <dl>
+      <dt>Makusanyo leo</dt><dd>{{ c.makusanyo.leo|money }}{% if c.makusanyo.asilimia is not None %} <span class="pct">{{ c.makusanyo.asilimia }}%</span>{% endif %}</dd>
+      <dt>Makadirio leo</dt><dd>{{ c.makusanyo.makadirio|money }}</dd>
+      <dt>Hazijakusanywa leo</dt><dd {% if c.makusanyo.hazijakusanywa %}class="text-red"{% endif %}>{{ c.makusanyo.hazijakusanywa|money }}</dd>
+      <dt>Mwezi huu</dt><dd>{{ c.makusanyo.mwezi|money }}</dd>
+      <dt>Mwaka huu</dt><dd>{{ c.makusanyo.mwaka|money }}</dd>
+    </dl>
+    <a class="mcard-link" href="{% url 'report_collections' %}">Fungua</a>
+  </article>
+
+  <article class="mcard">
+    <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-4 3 3 6-6"/></svg><h2>Mapato</h2></header>
+    <b class="mcard-num">{{ c.mapato.jumla|money }}</b>
+    <dl>
+      <dt>Fomu leo</dt><dd>{{ c.mapato.fomu_leo|money }}</dd>
+      <dt>Fomu (jumla)</dt><dd>{{ c.mapato.fomu|money }}</dd>
+      <dt>Faini</dt><dd>{{ c.mapato.faini|money }}</dd>
+      <dt>Tembelea</dt><dd>{{ c.mapato.tembelea|money }}</dd>
+      <dt>Mengine</dt><dd>{{ c.mapato.mengine|money }}</dd>
+    </dl>
+    <a class="mcard-link" href="{% url 'cash_list' %}">Fungua</a>
+  </article>
+
+  <article class="mcard">
+    <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V10M19 21V10M9 21V10M15 21V10M2 10l10-7 10 7z"/></svg><h2>Benki</h2></header>
+    <b class="mcard-num">{{ c.benki.jumla|money }}</b>
+    <dl>
+      <dt>Leo</dt><dd>{{ c.benki.leo|money }}</dd>
+      <dt>Mwezi huu</dt><dd>{{ c.benki.mwezi|money }}</dd>
+      <dt>Mwaka huu</dt><dd>{{ c.benki.mwaka|money }}</dd>
+    </dl>
+    <a class="mcard-link" href="{% url 'cash_list' %}?aina=TO_BANK">Fungua</a>
+  </article>
+
+  <article class="mcard">
+    <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><h2>SMS</h2></header>
+    <b class="mcard-num">{{ c.sms.jumla }}</b>
+    <dl>
+      <dt>Leo</dt><dd>{{ c.sms.leo }}</dd>
+      <dt>Mwezi huu</dt><dd>{{ c.sms.mwezi }}</dd>
+      <dt>Mwaka huu</dt><dd>{{ c.sms.mwaka }}</dd>
+      <dt>Zimeshindwa</dt><dd {% if c.sms.zimeshindwa %}class="text-red"{% endif %}>{{ c.sms.zimeshindwa }}</dd>
+    </dl>
+    <a class="mcard-link" href="{% url 'sms_log' %}">Fungua</a>
+  </article>
+
+  <article class="mcard">
+    <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V8l9-5 9 5v13M9 21v-6h6v6"/></svg><h2>Matawi</h2></header>
+    <b class="mcard-num">{{ c.matawi.jumla }}</b>
+    <dl>
+      <dt>Yanafanya kazi</dt><dd>{{ c.matawi.hai }}</dd>
+      <dt>Wafanyakazi</dt><dd>{{ c.matawi.wafanyakazi }}</dd>
+    </dl>
+    {% if user.is_admin %}<a class="mcard-link" href="{% url 'report_branches' %}">Fungua</a>{% endif %}
+  </article>
+</div>
+
+<section class="panel" id="chati">
+  <div class="panel-head">
+    <h2>Wateja, mikopo, makusanyo na mauzo ya fomu, {{ chart.year }}</h2>
+    <form method="get" action="#chati"><label class="sr-only" for="mwaka">Mwaka</label>
+      <select id="mwaka" name="mwaka" onchange="this.form.submit()" style="width:auto;min-height:0;padding:6px 10px">
+        {% for y in years %}<option value="{{ y }}" {% if y == chart.year %}selected{% endif %}>{{ y }}</option>{% endfor %}
+      </select></form>
+  </div>
+  <div class="chart-box"><canvas id="yearChart" aria-label="Chati ya mwezi kwa mwezi"></canvas></div>
+  <div class="month-table">
+    <table>
+      <thead><tr><th></th><th class="num total-col">Jumla</th>{% for m in chart.labels %}<th class="num">{{ m }}</th>{% endfor %}</tr></thead>
+      <tbody>
+      {% for label, data, sum, is_money in chart_rows %}
+        <tr><th scope="row">{{ label }}</th>
+          <td class="num total-col"><strong>{% if is_money %}{{ sum|money }}{% else %}{{ sum|floatformat:0 }}{% endif %}</strong></td>
+          {% for v in data %}<td class="num">{% if is_money %}{{ v|money }}{% else %}{{ v|floatformat:0 }}{% endif %}</td>{% endfor %}</tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="grid grid-2">
+  <section class="panel">
+    <div class="panel-head"><h2>Wanaomaliza wiki hii</h2></div>
+    {% for l in due_soon %}
+      <div style="display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid #EEF0F2">
+        <a href="{% url 'loan_detail' l.pk %}" style="text-decoration:none;font-weight:600">{{ l.customer }}<span class="sub">{{ l.due_date|date:"D j M" }}</span></a>
+        <span class="num">{{ l.balance_total|money }}</span>
+      </div>
+    {% empty %}<p class="text-muted">Hakuna mkopo unaoisha ndani ya siku 7.</p>{% endfor %}
+  </section>
+  <section class="panel">
+    <div class="panel-head"><h2>Marejesho ya karibuni</h2><a href="{% url 'report_collections' %}">Yote</a></div>
+    {% for r in recent_payments %}
+      <div style="display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid #EEF0F2">
+        <a href="{% url 'loan_detail' r.loan_id %}" style="text-decoration:none;font-weight:600">{{ r.loan.customer }}<span class="sub">{{ r.paid_at|date:"j M, H:i" }}, {{ r.get_method_display }}</span></a>
+        <span class="num">{{ r.amount|money }}</span>
+      </div>
+    {% empty %}<p class="text-muted">Bado hakuna marejesho yaliyorekodiwa.</p>{% endfor %}
+  </section>
+</div>
+{{ chart|json_script:"chart-data" }}
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  var d = JSON.parse(document.getElementById("chart-data").textContent);
+  var el = document.getElementById("yearChart");
+  if (!window.Chart || !el) return;
+  Chart.defaults.font.family = "'Source Sans 3', sans-serif";
+  var small = window.matchMedia("(max-width: 860px)").matches;
+  function money(v) { return v >= 1e6 ? (v / 1e6).toFixed(v % 1e6 ? 1 : 0) + "M" : v >= 1e3 ? (v / 1e3) + "K" : v; }
+  new Chart(el, {
+    data: { labels: d.labels, datasets: [
+      { type: "bar", label: "Mikopo", data: d.mikopo, backgroundColor: "#000000", borderRadius: 3, yAxisID: "y" },
+      { type: "bar", label: "Makusanyo", data: d.makusanyo, backgroundColor: "#F2B51D", borderRadius: 3, yAxisID: "y" },
+      { type: "bar", label: "Mauzo ya fomu", data: d.fomu, backgroundColor: "#9A9FA8", borderRadius: 3, yAxisID: "y" },
+      { type: "line", label: "Wateja wapya", data: d.wateja.map(function (v, i) { return i < d.months_passed ? v : null; }), borderColor: "#1F5FA8", backgroundColor: "#1F5FA8",
+        tension: .3, pointRadius: 3, yAxisID: "y2" }
+    ]},
+    options: {
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: { legend: { position: "bottom", labels: { boxWidth: 12 } },
+        tooltip: { callbacks: { label: function (c) {
+          var v = c.parsed.y.toLocaleString();
+          return c.dataset.yAxisID === "y2" ? c.dataset.label + ": " + v : c.dataset.label + ": TSh " + v; } } } },
+      scales: {
+        y: { ticks: { callback: money }, title: { display: !small, text: "TSh" } },
+        y2: { position: "right", grid: { display: false }, beginAtZero: true, ticks: { precision: 0 },
+              title: { display: !small, text: "Wateja" } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}

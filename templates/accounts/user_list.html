@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Watumiaji{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Watumiaji</h1><p>Wafanyakazi wanaoweza kuingia kwenye mfumo.</p></div>
+  <a class="btn btn-gold" href="{% url 'user_create' %}">Ongeza mtumiaji</a>
+</div>
+<div class="panel table-wrap">
+<table>
+  <thead><tr><th>Jina</th><th>Jina la kuingilia</th><th>Nafasi</th><th>Tawi</th><th>Simu</th><th>Hali</th><th></th></tr></thead>
+  <tbody>
+  {% for x in users %}
+  <tr>
+    <td>{{ x }}</td><td>{{ x.username }}</td><td>{{ x.get_role_display }}</td>
+    <td>{{ x.branch|default:"Matawi yote" }}</td><td>{{ x.phone }}</td>
+    <td>{% if x.is_active %}<span class="badge st-done">Hai</span>{% else %}<span class="badge st-muted">Imezimwa</span>{% endif %}</td>
+    <td><a class="btn btn-ghost btn-sm" href="{% url 'user_edit' x.pk %}">Hariri</a></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

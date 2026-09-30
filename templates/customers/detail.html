@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load magafu %}
+{% block title %}{{ customer }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>{{ customer.full_name }}</h1><p><a href="tel:{{ customer.phone }}">{{ customer.phone }}</a>, tawi la {{ customer.branch }}</p></div>
+  <div class="actions">
+    <a class="btn btn-ghost" href="{% url 'customer_edit' customer.pk %}">Hariri taarifa</a>
+    {% if open_loan %}<a class="btn btn-dark" href="{% url 'loan_detail' open_loan.pk %}">Fungua mkopo wake</a>
+    {% else %}<a class="btn btn-gold" href="{% url 'loan_apply' %}?mteja={{ customer.pk }}">Omba mkopo</a>{% endif %}
+  </div>
+</div>
+<div class="grid grid-2">
+  <section class="panel">
+    <h2 style="margin-bottom:12px">Taarifa binafsi</h2>
+    <dl class="kv">
+      <dt>Jinsia</dt><dd>{{ customer.get_gender_display }}</dd>
+      <dt>NIDA</dt><dd>{{ customer.national_id|default:"—" }}</dd>
+      <dt>Makazi</dt><dd>{{ customer.address|default:"—" }}</dd>
+      <dt>Kazi</dt><dd>{{ customer.occupation|default:"—" }}</dd>
+      <dt>Alisajiliwa</dt><dd>{{ customer.created_at|date:"j M Y" }}{% if customer.registered_by %} na {{ customer.registered_by }}{% endif %}</dd>
+    </dl>
+  </section>
+  <section class="panel">
+    <h2 style="margin-bottom:12px">Mdhamini</h2>
+    {% if customer.guarantor_name %}
+    <dl class="kv">
+      <dt>Jina</dt><dd>{{ customer.guarantor_name }}</dd>
+      <dt>Simu</dt><dd>{% if customer.guarantor_phone %}<a href="tel:{{ customer.guarantor_phone }}">{{ customer.guarantor_phone }}</a>{% else %}—{% endif %}</dd>
+      <dt>Uhusiano</dt><dd>{{ customer.guarantor_relation|default:"—" }}</dd>
+    </dl>
+    {% else %}<p class="text-muted">Hakuna mdhamini aliyewekwa. <a href="{% url 'customer_edit' customer.pk %}">Ongeza</a>.</p>{% endif %}
+  </section>
+</div>
+<section class="panel">
+  <h2 style="margin-bottom:12px">Historia ya mikopo</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Mkopo</th><th>Aina</th><th class="num">Kiasi</th><th class="num">Jumla</th><th class="num">Amelipa</th><th class="num">Deni</th><th>Kumaliza</th><th>Hali</th></tr></thead>
+    <tbody>
+    {% for l in loans %}
+      <tr><td><a href="{% url 'loan_detail' l.pk %}">{{ l.number }}</a><span class="sub">{{ l.applied_at|date:"j M Y" }}</span></td>
+        <td>{{ l.product.name }}</td><td class="num">{{ l.principal|money }}</td><td class="num">{{ l.total_payable|money }}</td>
+        <td class="num">{{ l.paid_total|money }}</td><td class="num">{{ l.balance_total|money }}</td>
+        <td>{{ l.due_date|date:"j M Y"|default:"—" }}</td>
+        <td><span class="badge {{ l.display_status|status_class }}">{{ l.display_status_label }}</span></td></tr>
+    {% empty %}<tr><td colspan="8" class="empty">Mteja huyu hajachukua mkopo bado.</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</section>
+{% endblock %}

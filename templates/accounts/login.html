@@ -1,0 +1,26 @@
+{% load static %}<!doctype html>
+<html lang="sw">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ingia | {{ COMPANY_NAME }}</title>
+  <link rel="icon" href="{% static 'img/logo.jpeg' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-art"><img src="{% static 'img/logo.jpeg' %}" alt="{{ COMPANY_NAME }}"></div>
+  <div class="login-box">
+    <form method="post" class="panel" novalidate>{% csrf_token %}
+      <h1>Karibu tena</h1>
+      <p>Ingia kuendelea na kazi za leo.</p>
+      {% if form.non_field_errors %}<div class="alert alert-error">{{ form.non_field_errors.0 }}</div>{% endif %}
+      <div class="field"><label for="id_username">Jina la mtumiaji</label>{{ form.username }}</div>
+      <div class="field"><label for="id_password">Nenosiri</label>{{ form.password }}</div>
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="btn btn-gold" type="submit">Ingia</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>

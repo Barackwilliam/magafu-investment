@@ -1,0 +1,46 @@
+{% load static magafu %}<!doctype html>
+<html lang="sw"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Statement {{ loan.number }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/app.css' %}"></head>
+<body style="background:#fff">
+<div class="print-page">
+  <div class="print-head">
+    <div><h1>Statement ya mkopo</h1><p class="text-muted" style="margin:4px 0 0">{{ COMPANY_NAME }}{% if COMPANY_PHONE %}, {{ COMPANY_PHONE }}{% endif %}</p></div>
+    <img src="{% static 'img/logo.jpeg' %}" alt="">
+  </div>
+  <div class="grid grid-2">
+    <dl class="kv">
+      <dt>Mteja</dt><dd>{{ loan.customer.full_name }}</dd>
+      <dt>Simu</dt><dd>{{ loan.customer.phone }}</dd>
+      <dt>NIDA</dt><dd>{{ loan.customer.national_id|default:"—" }}</dd>
+      <dt>Tawi</dt><dd>{{ loan.branch }}</dd>
+    </dl>
+    <dl class="kv">
+      <dt>Namba ya mkopo</dt><dd>{{ loan.number }}</dd>
+      <dt>Ulitolewa</dt><dd>{{ loan.disbursed_at|date:"j M Y"|default:"—" }}</dd>
+      <dt>Kumaliza</dt><dd>{{ loan.due_date|date:"j M Y"|default:"—" }}</dd>
+      <dt>Hali</dt><dd>{{ loan.display_status_label }}</dd>
+    </dl>
+  </div>
+  <table style="margin-top:22px">
+    <thead><tr><th>Tarehe</th><th>Maelezo</th><th class="num">Deni</th><th class="num">Malipo</th></tr></thead>
+    <tbody>
+      <tr><td>{{ loan.disbursed_at|date:"j M Y"|default:"—" }}</td><td>Mkopo</td><td class="num">{{ loan.principal|money }}</td><td></td></tr>
+      <tr><td></td><td>Riba {{ loan.interest_rate|floatformat:"-2" }}%</td><td class="num">{{ loan.interest_amount|money }}</td><td></td></tr>
+      {% for p in penalties %}<tr><td>{{ p.date|date:"j M Y" }}</td><td>Faini: {{ p.reason }}</td><td class="num">{{ p.amount|money }}</td><td></td></tr>{% endfor %}
+      {% for r in repayments %}<tr><td>{{ r.paid_at|date:"j M Y" }}</td><td>Rejesho ({{ r.get_method_display }}{% if r.reference %}, {{ r.reference }}{% endif %})</td><td></td><td class="num">{{ r.amount|money }}</td></tr>{% endfor %}
+    </tbody>
+    <tfoot>
+      <tr><td colspan="2">Jumla</td><td class="num">{{ loan.total_payable|add:loan.penalties|money }}</td><td class="num">{{ loan.amount_paid|money }}</td></tr>
+      <tr><td colspan="3">Deni lililobaki</td><td class="num">TSh {{ loan.balance|money }}</td></tr>
+    </tfoot>
+  </table>
+  <p class="text-muted" style="margin-top:26px;font-size:.85rem">Imetolewa {{ now|date:"j M Y, H:i" }}.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:50px">
+    <div style="border-top:1px solid #999;padding-top:6px">Sahihi ya mteja</div>
+    <div style="border-top:1px solid #999;padding-top:6px">Sahihi ya afisa</div>
+  </div>
+  <div class="no-print" style="margin-top:28px"><button class="btn btn-gold" onclick="window.print()">Print</button></div>
+</div>
+</body></html>

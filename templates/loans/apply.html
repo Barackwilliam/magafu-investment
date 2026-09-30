@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load magafu %}
+{% block title %}Omba mkopo{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Omba mkopo</h1><p>Ombi litasubiri kuthibitishwa na meneja kabla pesa kutolewa.</p></div></div>
+<div class="grid grid-3">
+  <form method="post" class="panel span-2" novalidate>{% csrf_token %}
+    {% include "_form_fields.html" %}
+    <div class="form-actions">
+      <button class="btn btn-gold" type="submit">Tuma ombi</button>
+      <a class="btn btn-ghost" href="{% url 'loan_list' %}">Ghairi</a>
+    </div>
+  </form>
+  <aside class="panel" aria-live="polite">
+    <h2 style="margin-bottom:12px">Makadirio</h2>
+    <dl class="kv" id="calc">
+      <dt>Riba</dt><dd data-k="interest">—</dd>
+      <dt>Jumla ya kulipa</dt><dd data-k="total">—</dd>
+      <dt>Muda</dt><dd data-k="days">—</dd>
+      <dt>Kila rejesho</dt><dd data-k="inst">—</dd>
+      <dt>Ada ya fomu</dt><dd data-k="fee">—</dd>
+    </dl>
+    <p class="text-muted" style="margin:14px 0 0;font-size:.88rem">Riba ni flat juu ya kiasi cha mkopo.</p>
+  </aside>
+</div>
+<script id="products" type="application/json">{
+{% for p in products %}"{{ p.pk }}": {"rate": {{ p.interest_rate|stringformat:"f" }}, "days": {{ p.duration_days }}, "freq": "{{ p.repayment_frequency }}", "fee": {{ p.form_fee|stringformat:"f" }}}{% if not forloop.last %},{% endif %}
+{% endfor %}}</script>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  var P = JSON.parse(document.getElementById("products").textContent);
+  var per = { DAILY: 1, WEEKLY: 7, MONTHLY: 30 };
+  var prod = document.getElementById("id_product"), amt = document.getElementById("id_principal");
+  function f(n) { return "TSh " + Math.round(n).toLocaleString(); }
+  function set(k, v) { document.querySelector('#calc [data-k="' + k + '"]').textContent = v; }
+  function calc() {
+    var p = P[prod.value], a = parseFloat(amt.value || 0);
+    if (!p || !a) { ["interest","total","days","inst","fee"].forEach(function (k) { set(k, "—"); }); return; }
+    var interest = Math.round(a * p.rate / 100), total = a + interest;
+    var n = per[p.freq] ? Math.max(1, Math.ceil(p.days / per[p.freq])) : 1;
+    set("interest", f(interest) + " (" + p.rate + "%)"); set("total", f(total));
+    set("days", "Siku " + p.days); set("inst", f(Math.ceil(total / n)) + " × " + n); set("fee", f(p.fee));
+  }
+  prod.addEventListener("change", calc); amt.addEventListener("input", calc); calc();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Matawi yote{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Matawi yote yaliyosajiliwa</h1><p>Matawi {{ branches|length }}. Kila mteja, mkopo na muamala unafungwa na tawi lake.</p></div>
+  <a class="btn btn-gold" href="{% url 'branch_create' %}">Sajili tawi jipya</a>
+</div>
+<div class="panel table-wrap"><table>
+  <thead><tr>
+    <th class="num">S/N</th><th>Jina la tawi</th><th>Simu</th><th>Msajili</th><th>Tarehe</th>
+    <th class="num">Wateja</th><th>Hali</th><th>Actions</th>
+  </tr></thead>
+  <tbody>
+  {% for b in branches %}
+    <tr>
+      <td class="num sn">{{ forloop.counter }}</td>
+      <td class="name-col"><strong>{{ b.name }}</strong>{% if b.location %}<span class="sub">{{ b.location }}</span>{% endif %}</td>
+      <td class="nowrap">{% if b.phone %}<a href="tel:{{ b.phone }}">{{ b.phone }}</a>{% else %}—{% endif %}</td>
+      <td>{{ b.created_by|default:"—" }}</td>
+      <td class="nowrap">{{ b.created_at|date:"j M Y" }}</td>
+      <td class="num">{{ b.customers_count }}</td>
+      <td>{% if b.is_active %}<span class="badge st-done">Linafanya kazi</span>{% else %}<span class="badge st-muted">Limezimwa</span>{% endif %}</td>
+      <td>
+        <div class="row-actions">
+          <a class="btn btn-ghost btn-sm" href="{% url 'branch_edit' b.pk %}">Hariri</a>
+          <form method="post" action="{% url 'branch_toggle' b.pk %}" data-confirm="{% if b.is_active %}Zima tawi {{ b.name }}? Wafanyakazi wake bado wataweza kuona data iliyopo.{% else %}Washa tawi {{ b.name }}?{% endif %}">{% csrf_token %}
+            <button class="btn btn-ghost btn-sm">{% if b.is_active %}Zima{% else %}Washa{% endif %}</button></form>
+          {% if not b.customers_count and not b.staff_count and not b.loans_count %}
+          <form method="post" action="{% url 'branch_delete' b.pk %}" data-confirm="Futa tawi {{ b.name }} kabisa?">{% csrf_token %}
+            <button class="btn btn-danger btn-sm">Futa</button></form>
+          {% endif %}
+        </div>
+      </td>
+    </tr>
+  {% empty %}<tr><td colspan="8" class="empty">Hakuna tawi bado. <a href="{% url 'branch_create' %}">Sajili la kwanza</a>.</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><div><h1>{{ title }}</h1>{% if subtitle %}<p>{{ subtitle }}</p>{% endif %}</div></div>
+<form method="post" class="panel form" novalidate>{% csrf_token %}
+  {% include "_form_fields.html" %}
+  <div class="form-actions">
+    <button class="btn btn-gold" type="submit">{{ submit|default:"Hifadhi" }}</button>
+    {% if back %}<a class="btn btn-ghost" href="{{ back }}">Ghairi</a>{% endif %}
+  </div>
+</form>
+{% endblock %}
