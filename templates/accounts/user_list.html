@@ -1,23 +1,25 @@
 {% extends "base.html" %}
-{% block title %}Watumiaji{% endblock %}
+{% block title %}Wafanyakazi{% endblock %}
 {% block content %}
 <div class="page-head">
-  <div><h1>Watumiaji</h1><p>Wafanyakazi wanaoweza kuingia kwenye mfumo.</p></div>
-  <a class="btn btn-gold" href="{% url 'user_create' %}">Ongeza mtumiaji</a>
+  <div><h1>Wafanyakazi</h1><p>Watu {{ users|length }} wanaoweza kuingia kwenye mfumo.</p></div>
+  <a class="btn btn-gold" href="{% url 'user_create' %}"><svg><use href="#i-user-plus"/></svg>Ongeza mfanyakazi</a>
 </div>
 <div class="panel table-wrap">
-<table>
-  <thead><tr><th>Jina</th><th>Jina la kuingilia</th><th>Nafasi</th><th>Tawi</th><th>Simu</th><th>Hali</th><th></th></tr></thead>
-  <tbody>
-  {% for x in users %}
-  <tr>
-    <td>{{ x }}</td><td>{{ x.username }}</td><td>{{ x.get_role_display }}</td>
-    <td>{{ x.branch|default:"Matawi yote" }}</td><td>{{ x.phone }}</td>
-    <td>{% if x.is_active %}<span class="badge st-done">Hai</span>{% else %}<span class="badge st-muted">Imezimwa</span>{% endif %}</td>
-    <td><a class="btn btn-ghost btn-sm" href="{% url 'user_edit' x.pk %}">Hariri</a></td>
-  </tr>
-  {% endfor %}
-  </tbody>
-</table>
+  <table>
+    <thead><tr><th>Jina</th><th>Nafasi</th><th>Tawi</th><th>Simu</th><th>Hali</th><th></th></tr></thead>
+    <tbody>
+    {% for x in users %}
+    <tr>
+      <td><div class="who-cell"><span class="avatar {% if not x.is_admin %}muted{% endif %}">{{ x.first_name|slice:":1"|default:x.username|slice:":1"|upper }}{{ x.last_name|slice:":1" }}</span>
+        <div><strong>{{ x }}</strong><span class="sub">@{{ x.username }}</span></div></div></td>
+      <td>{% if x.is_admin %}<span class="badge st-active">Admin</span>{% elif x.role == 'MANAGER' %}<span class="badge st-info">{{ x.get_role_display }}</span>{% else %}<span class="badge st-muted">{{ x.get_role_display }}</span>{% endif %}</td>
+      <td>{{ x.branch|default:"Matawi yote" }}</td><td>{% if x.phone %}<a href="tel:{{ x.phone }}">{{ x.phone }}</a>{% else %}—{% endif %}</td>
+      <td>{% if x.is_active %}<span class="badge st-done">Hai</span>{% else %}<span class="badge st-muted">Imezimwa</span>{% endif %}</td>
+      <td class="actions-cell"><a class="btn btn-ghost btn-sm" href="{% url 'user_edit' x.pk %}"><svg><use href="#i-edit"/></svg>Hariri</a></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}

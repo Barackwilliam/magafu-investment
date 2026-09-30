@@ -1,120 +1,164 @@
 {% load static %}<!doctype html>
-<html lang="sw">
+<html lang="sw" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#000000">
-  <title>{% block title %}{{ title|default:"Mfumo" }}{% endblock %} | {{ COMPANY_NAME }}</title>
-  <link rel="icon" href="{% static 'img/logo.jpeg' %}">
+  <meta name="theme-color" content="#F5F3EE">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Magafu">
+  <title>{% block title %}{{ title|default:"Mfumo" }}{% endblock %} · {{ COMPANY_NAME }}</title>
+  <script>
+    /* Weka mwanga/giza kabla ukurasa haujachorwa, ili usiwake mweupe */
+    (function () {
+      try {
+        var t = localStorage.getItem("magafu-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+        if (t === "dark") document.querySelector('meta[name="theme-color"]').setAttribute("content", "#09090A");
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="icon" type="image/png" sizes="96x96" href="{% static 'img/icon-96.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+  <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   {% block head %}{% endblock %}
 </head>
-<body>
-{% with p=request.path u=request.user %}
-<div class="shell">
+<body class="{% block body_class %}{% endblock %}">
+{% include "_icons.html" %}
+{% with u=request.user nc=nav_counts %}
+<div class="app">
   <aside class="sidebar" id="sidebar" aria-label="Menyu kuu">
-    <button type="button" class="sidebar-close" data-close aria-label="Funga menyu">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-    </button>
+    <button type="button" class="sidebar-close" data-close aria-label="Funga menyu"><svg width="20" height="20"><use href="#i-x"/></svg></button>
     <a class="brand" href="{% url 'dashboard' %}">
-      <img src="{% static 'img/logo.jpeg' %}" alt="">
-      <div><strong>Magafu</strong><span>Investment</span></div>
+      <img src="{% static 'img/mark.webp' %}" alt="" width="46" height="46">
+      <div><strong>MAGAFU</strong><span>Investment</span></div>
     </a>
+
     <nav class="nav">
-      {% with fp=request.get_full_path %}
-      <a class="main-link {% if p == '/' %}active{% endif %}" href="{% url 'dashboard' %}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>Nyumbani</a>
+      <a href="{% url 'dashboard' %}" class="{% if nav == 'home' %}active{% endif %}"><svg><use href="#i-home"/></svg>Nyumbani</a>
+
+      <div class="nav-label">Wateja</div>
+      <a href="{% url 'customer_list' %}" class="{% if nav == 'customers' %}active{% endif %}"><svg><use href="#i-users"/></svg>Wateja wote</a>
+      <a href="{% url 'customer_create' %}" class="{% if nav == 'customer_new' %}active{% endif %}"><svg><use href="#i-user-plus"/></svg>Sajili mteja</a>
+
+      <div class="nav-label">Mikopo</div>
+      <a href="{% url 'loan_apply' %}" class="{% if nav == 'loan_apply' %}active{% endif %}"><svg><use href="#i-file-plus"/></svg>Omba mkopo</a>
+      <a href="{% url 'loan_list' %}?hali=inasubiri" class="{% if nav == 'loans_inasubiri' %}active{% endif %}"><svg><use href="#i-clock"/></svg>Zinasubiri{% if nc.pending %}<span class="count gold">{{ nc.pending }}</span>{% endif %}</a>
+      <a href="{% url 'loan_list' %}?hali=imethibitishwa" class="{% if nav == 'loans_imethibitishwa' %}active{% endif %}"><svg><use href="#i-badge-check"/></svg>Tayari kutolewa{% if nc.approved %}<span class="count gold">{{ nc.approved }}</span>{% endif %}</a>
+      <a href="{% url 'loan_list' %}?hali=hai" class="{% if nav == 'loans_hai' %}active{% endif %}"><svg><use href="#i-wallet"/></svg>Wanaodaiwa</a>
+      <a href="{% url 'loan_list' %}?hali=sugu" class="{% if nav == 'loans_sugu' %}active{% endif %}"><svg><use href="#i-alert"/></svg>Nje ya mkataba{% if nc.overdue %}<span class="count hot">{{ nc.overdue }}</span>{% endif %}</a>
+      <a href="{% url 'loan_list' %}?hali=zimeisha" class="{% if nav == 'loans_zimeisha' %}active{% endif %}"><svg><use href="#i-check-circle"/></svg>Waliomaliza</a>
+      <a href="{% url 'loan_list' %}?hali=zote" class="{% if nav == 'loans_zote' or nav == 'loans_zimekataliwa' %}active{% endif %}"><svg><use href="#i-list"/></svg>Mikopo yote</a>
+
+      <div class="nav-label">Fedha</div>
+      <a href="{% url 'cash_list' %}" class="{% if nav == 'cash' %}active{% endif %}"><svg><use href="#i-book"/></svg>Daftari la fedha</a>
+      <a href="{% url 'cash_create' %}?aina=EXPENSE" class="{% if nav == 'cash_expense' %}active{% endif %}"><svg><use href="#i-receipt"/></svg>Rekodi matumizi</a>
+      <a href="{% url 'cash_create' %}?aina=CAPITAL_IN" class="{% if nav == 'cash_capital' %}active{% endif %}"><svg><use href="#i-plus-circle"/></svg>Pesa zilizoongezwa</a>
+      <a href="{% url 'cash_create' %}?aina=TO_BANK" class="{% if nav == 'cash_bank' %}active{% endif %}"><svg><use href="#i-bank"/></svg>Pesa kwenda benki</a>
+
+      <div class="nav-label">Ripoti</div>
+      <a href="{% url 'report_daily' %}" class="{% if nav == 'r_daily' %}active{% endif %}"><svg><use href="#i-calendar"/></svg>Ripoti ya siku</a>
+      <a href="{% url 'report_collections' %}" class="{% if nav == 'r_collections' %}active{% endif %}"><svg><use href="#i-trending"/></svg>Makusanyo</a>
+      <a href="{% url 'report_disbursements' %}" class="{% if nav == 'r_disbursements' %}active{% endif %}"><svg><use href="#i-send"/></svg>Mikopo iliyotolewa</a>
+      <a href="{% url 'report_overdue' %}" class="{% if nav == 'r_overdue' %}active{% endif %}"><svg><use href="#i-flame"/></svg>Madeni sugu</a>
+      {% if u.is_admin %}<a href="{% url 'report_branches' %}" class="{% if nav == 'r_branches' %}active{% endif %}"><svg><use href="#i-chart"/></svg>Ripoti ya matawi</a>{% endif %}
+      <a href="{% url 'sms_log' %}" class="{% if nav == 'sms' %}active{% endif %}"><svg><use href="#i-message"/></svg>SMS</a>
 
       {% if u.is_admin %}
-      <div class="nav-section {% if '/matawi/' in p or '/watumiaji/' in p or '/mikopo/aina' in p %}open{% endif %}">
-        <a class="main-link" href="{% url 'branch_list' %}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V8l9-5 9 5v13M9 21v-6h6v6"/></svg>Tawi</a>
-        <div class="sub">
-          <a href="{% url 'branch_list' %}" class="{% if '/matawi/' in p and '/ripoti/' not in p %}active{% endif %}">Matawi yote</a>
-          <a href="{% url 'user_list' %}" class="{% if '/watumiaji/' in p %}active{% endif %}">Wafanyakazi</a>
-          <a href="{% url 'product_list' %}" class="{% if '/mikopo/aina' in p %}active{% endif %}">Aina za mikopo</a>
-        </div>
-      </div>
+      <div class="nav-label">Mipangilio</div>
+      <a href="{% url 'branch_list' %}" class="{% if nav == 'branches' %}active{% endif %}"><svg><use href="#i-building"/></svg>Matawi</a>
+      <a href="{% url 'user_list' %}" class="{% if nav == 'users' %}active{% endif %}"><svg><use href="#i-id"/></svg>Wafanyakazi</a>
+      <a href="{% url 'product_list' %}" class="{% if nav == 'products' %}active{% endif %}"><svg><use href="#i-tag"/></svg>Aina za mikopo</a>
       {% endif %}
-
-      <div class="nav-section {% if '/wateja/' in p or '/mikopo/omba' in p %}open{% endif %}">
-        <a class="main-link" href="{% url 'customer_create' %}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M1 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1M19 8v6M16 11h6"/></svg>Sajili Mteja</a>
-        <div class="sub">
-          <a href="{% url 'customer_create' %}" class="{% if p == '/wateja/mpya/' %}active{% endif %}">Mteja mpya</a>
-          <a href="{% url 'loan_apply' %}" class="{% if '/mikopo/omba' in p %}active{% endif %}">Omba mkopo</a>
-          <a href="{% url 'customer_list' %}" class="{% if p == '/wateja/' or '/wateja/' in p and p != '/wateja/mpya/' %}active{% endif %}">Wateja wote</a>
-        </div>
-      </div>
-
-      <div class="nav-section {% if '/fedha/' in p %}open{% endif %}">
-        <a class="main-link" href="{% url 'cash_create' %}?aina=EXPENSE">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM4 9h16M9 4v16"/></svg>Matumizi</a>
-        <div class="sub">
-          <a href="{% url 'cash_create' %}?aina=EXPENSE" class="{% if 'aina=EXPENSE' in fp and '/mpya/' in p %}active{% endif %}">Tumizi jipya</a>
-          <a href="{% url 'cash_create' %}?aina=CAPITAL_IN" class="{% if 'aina=CAPITAL_IN' in fp and '/mpya/' in p %}active{% endif %}">Pesa zilizoongezwa</a>
-          <a href="{% url 'cash_create' %}?aina=TO_BANK" class="{% if 'aina=TO_BANK' in fp and '/mpya/' in p %}active{% endif %}">Pesa kwenda benki</a>
-          <a href="{% url 'cash_list' %}" class="{% if p == '/fedha/' %}active{% endif %}">Daftari la fedha</a>
-        </div>
-      </div>
-
-      <div class="nav-section {% if '/mikopo/' in p and '/mikopo/aina' not in p and '/mikopo/omba' not in p %}open{% endif %}">
-        <a class="main-link" href="{% url 'loan_list' %}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 10v4M18 10v4"/></svg>Mikopo</a>
-        <div class="sub">
-          <a href="{% url 'loan_list' %}?hali=hai" class="{% if p == '/mikopo/' and 'hali=' not in fp or 'hali=hai' in fp %}active{% endif %}">Wanaodaiwa</a>
-          <a href="{% url 'loan_list' %}?hali=inasubiri" class="{% if 'hali=inasubiri' in fp %}active{% endif %}">Yanasubiri kuthibitishwa</a>
-          <a href="{% url 'loan_list' %}?hali=imethibitishwa" class="{% if 'hali=imethibitishwa' in fp %}active{% endif %}">Tayari kutolewa</a>
-          <a href="{% url 'loan_list' %}?hali=sugu" class="{% if 'hali=sugu' in fp %}active{% endif %}">Nje ya mkataba</a>
-          <a href="{% url 'loan_list' %}?hali=zimeisha" class="{% if 'hali=zimeisha' in fp %}active{% endif %}">Waliomaliza</a>
-        </div>
-      </div>
-
-      <div class="nav-section {% if '/ripoti/' in p or '/sms/' in p %}open{% endif %}">
-        <a class="main-link" href="{% url 'report_daily' %}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Reports</a>
-        <div class="sub">
-          <a href="{% url 'report_daily' %}" class="{% if '/ripoti/siku' in p %}active{% endif %}">Ripoti ya siku</a>
-          <a href="{% url 'report_collections' %}" class="{% if '/ripoti/makusanyo' in p %}active{% endif %}">Makusanyo</a>
-          <a href="{% url 'report_disbursements' %}" class="{% if '/ripoti/mikopo' in p %}active{% endif %}">Mikopo iliyotolewa</a>
-          <a href="{% url 'report_overdue' %}" class="{% if '/ripoti/madeni' in p %}active{% endif %}">Madeni sugu</a>
-          {% if u.is_admin %}<a href="{% url 'report_branches' %}" class="{% if '/ripoti/matawi' in p %}active{% endif %}">Ripoti ya matawi</a>{% endif %}
-          <a href="{% url 'sms_log' %}" class="{% if '/sms/' in p %}active{% endif %}">SMS</a>
-        </div>
-      </div>
-
-      <form method="post" action="{% url 'logout' %}" class="logout-form">{% csrf_token %}
-        <button type="submit" class="main-link ondoka">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.4 6.6a9 9 0 1 1-12.8 0M12 2v10"/></svg>Ondoka</button>
-      </form>
-      {% endwith %}
     </nav>
-    <div class="sidebar-foot">
-      <div class="who">{{ u }}</div>
-      <div class="role">{{ u.get_role_display }}{% if u.branch %}, {{ u.branch }}{% endif %}</div>
-      <a href="{% url 'password_change' %}" style="display:inline-block;margin-top:8px">Badilisha nenosiri</a>
+
+    <div class="side-user">
+      <span class="avatar">{{ user_initials }}</span>
+      <div><div class="who">{{ u }}</div><div class="role">{{ u.get_role_display }}{% if u.branch %} · {{ u.branch }}{% endif %}</div></div>
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+        <button type="submit" class="icon-btn" style="background:transparent;border-color:#2a2a2e;color:#cfcabf" aria-label="Ondoka" title="Ondoka"><svg><use href="#i-logout"/></svg></button>
+      </form>
     </div>
   </aside>
   <div class="scrim"></div>
 
   <div class="main">
     <header class="topbar">
-      <button type="button" data-menu aria-label="Fungua menyu" aria-controls="sidebar" aria-expanded="false">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      <button type="button" class="icon-btn hide-desktop" data-menu aria-label="Fungua menyu" aria-controls="sidebar" aria-expanded="false"><svg><use href="#i-menu"/></svg></button>
+      <a href="{% url 'dashboard' %}" class="topbar-brand hide-desktop"><img src="{% static 'img/icon-96.png' %}" alt="" width="34" height="34">Magafu</a>
+
+      <form class="search" action="{% url 'search' %}" method="get" role="search">
+        <svg><use href="#i-search"/></svg>
+        <input id="global-search" type="search" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Tafuta mteja, simu au namba ya mkopo…" autocomplete="off" aria-label="Tafuta">
+        <kbd>/</kbd>
+      </form>
+
+      <span class="spacer"></span>
+      <a class="icon-btn hide-desktop" href="{% url 'search' %}" data-search-link aria-label="Tafuta"><svg><use href="#i-search"/></svg></a>
+      <button type="button" class="icon-btn theme-toggle" data-theme-toggle aria-label="Badilisha mwanga au giza" title="Mwanga / giza">
+        <svg class="moon"><use href="#i-moon"/></svg><svg class="sun"><use href="#i-sun"/></svg>
       </button>
-      <a href="{% url 'dashboard' %}" class="topbar-brand"><img src="{% static 'img/logo.jpeg' %}" alt=""><strong>Magafu</strong></a>
+      <a class="btn btn-gold hide-mobile" href="{% url 'loan_apply' %}"><svg><use href="#i-plus"/></svg>Omba mkopo</a>
+
+      <div class="menu" data-popmenu>
+        <button type="button" class="icon-btn" style="padding:0;border:0;background:none" aria-haspopup="true" aria-expanded="false" aria-label="Akaunti yangu">
+          <span class="avatar">{{ user_initials }}</span>
+        </button>
+        <div class="menu-pop" role="menu">
+          <div class="head"><strong>{{ u }}</strong><span class="text-muted" style="font-size:.82rem">{{ u.get_role_display }}{% if u.branch %} · {{ u.branch }}{% endif %}</span></div>
+          <a href="{% url 'password_change' %}" role="menuitem"><svg><use href="#i-key"/></svg>Badilisha nenosiri</a>
+          <button type="button" data-theme-toggle role="menuitem"><svg><use href="#i-moon"/></svg>Mwanga / giza</button>
+          <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+            <button type="submit" class="danger" role="menuitem"><svg><use href="#i-logout"/></svg>Ondoka</button>
+          </form>
+        </div>
+      </div>
     </header>
-    <main class="content">
-      {% for m in messages %}<div class="alert alert-{{ m.tags|default:'info' }}">{{ m }}</div>{% endfor %}
+
+    <main class="content" id="content">
       {% block content %}{% endblock %}
     </main>
   </div>
+
+  <nav class="tabbar" aria-label="Menyu ya chini">
+    <a href="{% url 'dashboard' %}" class="{% if nav == 'home' %}on{% endif %}"><svg><use href="#i-home"/></svg>Nyumbani</a>
+    <a href="{% url 'customer_list' %}" class="{% if nav == 'customers' or nav == 'customer_new' %}on{% endif %}"><svg><use href="#i-users"/></svg>Wateja</a>
+    <button type="button" data-sheet aria-label="Vitendo vya haraka" aria-controls="sheet"><span class="fab"><svg><use href="#i-plus"/></svg></span></button>
+    <a href="{% url 'loan_list' %}" class="{% if nav|slice:':6' == 'loans_' or nav == 'loan_apply' %}on{% endif %}"><svg><use href="#i-wallet"/></svg>Mikopo{% if nc.overdue %}<span class="dot">{{ nc.overdue }}</span>{% endif %}</a>
+    <button type="button" data-menu aria-label="Menyu yote"><svg><use href="#i-grid"/></svg>Zaidi</button>
+  </nav>
+
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Vitendo vya haraka" aria-hidden="true">
+    <div class="grip"></div>
+    <h2>Unataka kufanya nini?</h2>
+    <div class="sheet-grid">
+      <a href="{% url 'customer_create' %}"><span class="ico"><svg><use href="#i-user-plus"/></svg></span>Sajili mteja<small>Mteja mpya na mdhamini</small></a>
+      <a href="{% url 'loan_apply' %}"><span class="ico"><svg><use href="#i-file-plus"/></svg></span>Omba mkopo<small>Ombi jipya la mkopo</small></a>
+      <a href="{% url 'loan_list' %}?hali=hai"><span class="ico"><svg><use href="#i-cash"/></svg></span>Pokea malipo<small>Chagua mteja anayedaiwa</small></a>
+      <a href="{% url 'cash_create' %}?aina=EXPENSE"><span class="ico"><svg><use href="#i-receipt"/></svg></span>Rekodi matumizi<small>Gharama za ofisi</small></a>
+      <a href="{% url 'report_daily' %}"><span class="ico"><svg><use href="#i-calendar"/></svg></span>Ripoti ya leo<small>Muhtasari wa siku</small></a>
+      <a href="{% url 'search' %}"><span class="ico"><svg><use href="#i-search"/></svg></span>Tafuta<small>Mteja au mkopo</small></a>
+    </div>
+  </div>
 </div>
+
+{% if messages %}
+<div class="toasts" role="status" aria-live="polite">
+  {% for m in messages %}
+  <div class="toast toast-{{ m.tags|default:'info' }}">
+    <span class="ico"><svg><use href="{% if m.tags == 'error' %}#i-alert{% elif m.tags == 'success' %}#i-check{% else %}#i-info{% endif %}"/></svg></span>
+    <p>{{ m }}</p>
+    <button type="button" aria-label="Funga"><svg width="16" height="16"><use href="#i-x"/></svg></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 {% endwith %}
-<script src="{% static 'js/app.js' %}"></script>
+<script src="{% static 'js/app.js' %}" defer></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

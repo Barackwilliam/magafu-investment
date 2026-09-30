@@ -14,7 +14,7 @@ from . import services
 from .models import Loan, LoanProduct
 
 
-class LoanFlowTests(TestCase):
+class Fixtures(TestCase):
     def setUp(self):
         self.b1 = Branch.objects.create(name="Kariakoo")
         self.b2 = Branch.objects.create(name="Mbezi")
@@ -31,6 +31,9 @@ class LoanFlowTests(TestCase):
                                     principal=Decimal(amount), user=self.officer, form_fee_paid=True)
         services.approve_loan(loan.pk, self.manager)
         return services.disburse_loan(loan.pk, self.manager)
+
+
+class LoanFlowTests(Fixtures):
 
     def test_interest_and_full_flow(self):
         loan = self._active_loan()
@@ -154,3 +157,100 @@ class LoanFlowTests(TestCase):
         self.assertTrue(Branch.objects.filter(pk=self.b1.pk).exists())
         self.client.post(reverse("branch_delete", args=[mwenge.pk]))
         self.assertFalse(Branch.objects.filter(pk=mwenge.pk).exists())
+
+
+class BugFixTests(Fixtures):
+    """Kila test hapa inalinda bug iliyokuwepo kweli."""
+
+    def test_cash_form_shows_only_own_branch_customers(self):
+        """BUG: afisa aliona wateja wa matawi yote, admin hakuona yeyote."""
+        from finance.forms import CashEntryForm
+        officer_ids = set(CashEntryForm(user=self.officer).fields["customer"].queryset.values_list("pk", flat=True))
+        admin_ids = set(CashEntryForm(user=self.admin).fields["customer"].queryset.values_list("pk", flat=True))
+        self.assertEqual(officer_ids, {self.c1.pk})
+        self.assertEqual(admin_ids, {self.c1.pk, self.c2.pk})
+
+    def test_cash_customer_must_match_branch(self):
+        from finance.forms import CashEntryForm
+        form = CashEntryForm({"entry_type": "FORM_FEE", "date": timezone.localdate(), "amount": "5000",
+                              "branch": self.b1.pk, "customer": self.c2.pk}, user=self.admin)
+        self.assertFalse(form.is_valid())
+        self.assertIn("customer", form.errors)
+
+    def test_staff_without_branch_is_stopped_not_crashed(self):
+        """BUG: afisa bila tawi alipata server error (branch=None) akisajili mteja."""
+        User.objects.create_user("bila", password="pass1234", role="OFFICER")
+        self.client.login(username="bila", password="pass1234")
+        for name in ("customer_create", "cash_create", "loan_apply"):
+            r = self.client.post(reverse(name), {"first_name": "X", "amount": "100"})
+            self.assertRedirects(r, reverse("dashboard"), fetch_redirect_response=False)
+        self.assertFalse(Customer.objects.filter(first_name="X").exists())
+
+    def test_admin_cannot_lock_themselves_out(self):
+        self.client.login(username="admin", password="pass1234")
+        self.client.post(reverse("user_edit", args=[self.admin.pk]), {
+            "first_name": "Admin", "username": "admin", "role": "OFFICER", "branch": self.b1.pk,
+        })
+        self.admin.refresh_from_db()
+        self.assertEqual(self.admin.role, "ADMIN")
+        self.assertTrue(self.admin.is_active)
+
+    def test_product_limits_are_validated(self):
+        from .forms import LoanProductForm
+        form = LoanProductForm({"name": "Mbaya", "interest_rate": "150", "duration_days": "0",
+                                "repayment_frequency": "DAILY", "form_fee": "0", "penalty_per_day": "0",
+                                "min_amount": "500000", "max_amount": "1000"})
+        self.assertFalse(form.is_valid())
+        for field in ("interest_rate", "duration_days", "max_amount"):
+            self.assertIn(field, form.errors)
+
+    def test_customer_with_open_loan_cannot_change_branch(self):
+        from customers.forms import CustomerForm
+        self._active_loan()
+        data = {"first_name": "Hawa", "last_name": "Musa", "gender": "F", "phone": "0755000001",
+                "branch": self.b2.pk, "is_active": "on"}
+        form = CustomerForm(data, instance=self.c1, user=self.admin)
+        self.assertFalse(form.is_valid())
+        self.assertIn("branch", form.errors)
+
+    def test_phone_numbers_are_normalised(self):
+        from customers.forms import CustomerForm
+        form = CustomerForm({"first_name": "A", "last_name": "B", "gender": "M", "phone": "+255 712 345 678",
+                             "guarantor_phone": "712 000 111", "branch": self.b1.pk}, user=self.admin)
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["phone"], "0712345678")
+        self.assertEqual(form.cleaned_data["guarantor_phone"], "0712000111")
+
+    def test_penalties_apply_without_cron(self):
+        """BUG: bila Cron Job (inayolipiwa Render) faini hazikuwekwa kamwe."""
+        from django.core.cache import cache
+        cache.clear()
+        loan = self._active_loan()
+        Loan.objects.filter(pk=loan.pk).update(due_date=timezone.localdate() - timedelta(days=2))
+        self.client.login(username="afisa", password="pass1234")
+        self.client.get(reverse("dashboard"))
+        self.client.get(reverse("dashboard"))
+        self.assertEqual(loan.penalty_entries.count(), 1)
+
+
+class DeployTests(TestCase):
+    def test_production_static_files_build(self):
+        """BUG: faili la JS lilitaja source map isiyokuwepo, na collectstatic ya Render ingeshindwa."""
+        import tempfile
+        from django.core.management import call_command
+        from django.test import override_settings
+        with tempfile.TemporaryDirectory() as tmp, override_settings(
+            STATIC_ROOT=tmp,
+            STORAGES={"default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+                      "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"}},
+        ):
+            call_command("collectstatic", interactive=False, verbosity=0)
+
+    def test_search_finds_customer_and_loan_number(self):
+        from core.models import Branch
+        b = Branch.objects.create(name="Tawi")
+        User.objects.create_user("a", password="pass1234", role="ADMIN")
+        c = Customer.objects.create(branch=b, first_name="Rehema", last_name="Lema", gender="F", phone="0712000999")
+        self.client.login(username="a", password="pass1234")
+        r = self.client.get(reverse("search"), {"q": "+255 712 000 999"})
+        self.assertRedirects(r, reverse("customer_detail", args=[c.pk]))

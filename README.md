@@ -14,6 +14,12 @@ python manage.py runserver
 Fungua http://127.0.0.1:8000 na uingie. Superuser anatambuliwa kama Admin moja kwa moja.
 Bila `DATABASE_URL`, mfumo unatumia SQLite.
 
+Kujaribu na database ya Supabase kutoka kompyuta yako: nakili `.env.example` kuwa `.env`, weka
+`DATABASE_URL` ya Session pooler na `DEBUG=True`. Faili la `.env` halipandishwi GitHub.
+
+**VS Code:** fungua folda, chagua interpreter ya `venv` (Ctrl+Shift+P → *Python: Select Interpreter*),
+kisha bonyeza **F5** → *Magafu: runserver*.
+
 ## Kuunganisha Supabase
 
 1. Fungua [supabase.com](https://supabase.com) → **New project**. Chagua region iliyo karibu na Render
@@ -66,7 +72,14 @@ Bila cron, vikumbusho vinaweza kutumwa kwa kitufe ndani ya mfumo.
 - `password authentication failed` → password si sahihi, au user si `postgres.<project-ref>`.
 - `Bad Request (400)` → unatumia domain yako; iongeze kwenye `ALLOWED_HOSTS` na `CSRF_TRUSTED_ORIGINS`.
 
-## Roles
+## Muonekano
+- Rangi za nembo (nyeusi na dhahabu), mwanga na giza (kitufe cha mwezi juu; kinakumbukwa kwenye kifaa).
+- Simu kwanza: menyu ya chini, kitufe cha dhahabu "+" cha vitendo vya haraka, majedwali yanageuka kadi.
+- Tafuta popote: jina, simu (hata +255...) au namba ya mkopo kama MG00012. Kwenye kompyuta bonyeza `/`.
+- Inaweza kuwekwa kwenye simu kama app: fungua kwenye Chrome, kisha "Add to Home screen".
+- Chart.js iko ndani ya `static/vendor/` (haitegemei CDN).
+
+
 | Kazi | Afisa | Meneja | Admin |
 |---|---|---|---|
 | Kusajili wateja, kuomba mkopo, kupokea malipo, kurekodi matumizi | ✓ | ✓ | ✓ |

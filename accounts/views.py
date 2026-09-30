@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import views as auth_views
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -34,13 +35,16 @@ def user_list(request):
 @admin_required
 def user_form(request, pk=None):
     instance = get_object_or_404(User, pk=pk) if pk else None
-    form = UserForm(request.POST or None, instance=instance)
+    form = UserForm(request.POST or None, instance=instance, acting_user=request.user)
     if request.method == "POST" and form.is_valid():
         user = form.save()
+        if user.pk == request.user.pk and form.cleaned_data.get("password1"):
+            update_session_auth_hash(request, user)
         messages.success(request, f"Mtumiaji {user} amehifadhiwa.")
         return redirect("user_list")
     return render(request, "form.html", {
         "form": form,
         "title": f"Hariri {instance}" if instance else "Ongeza mtumiaji",
         "back": reverse("user_list"),
+        "sections": {"first_name": "Taarifa za mfanyakazi", "role": "Nafasi na tawi", "password1": "Nenosiri"},
     })

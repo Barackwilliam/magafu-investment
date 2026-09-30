@@ -2,49 +2,73 @@
 {% load magafu %}
 {% block title %}{{ customer }}{% endblock %}
 {% block content %}
+<a class="back-link" href="{% url 'customer_list' %}"><svg><use href="#i-chevron-left"/></svg>Wateja</a>
 <div class="page-head">
-  <div><h1>{{ customer.full_name }}</h1><p><a href="tel:{{ customer.phone }}">{{ customer.phone }}</a>, tawi la {{ customer.branch }}</p></div>
+  <div class="profile">
+    <span class="avatar lg">{{ customer.first_name|slice:":1" }}{{ customer.last_name|slice:":1" }}</span>
+    <div>
+      <h1>{{ customer.full_name }} {% if not customer.is_active %}<span class="badge st-muted">Amezimwa</span>{% endif %}</h1>
+      <div class="meta"><a href="tel:{{ customer.phone }}">{{ customer.phone }}</a><span>Tawi la {{ customer.branch }}</span><span>Tangu {{ customer.created_at|date:"M Y" }}</span></div>
+    </div>
+  </div>
   <div class="actions">
-    <a class="btn btn-ghost" href="{% url 'customer_edit' customer.pk %}">Hariri taarifa</a>
-    {% if open_loan %}<a class="btn btn-dark" href="{% url 'loan_detail' open_loan.pk %}">Fungua mkopo wake</a>
-    {% else %}<a class="btn btn-gold" href="{% url 'loan_apply' %}?mteja={{ customer.pk }}">Omba mkopo</a>{% endif %}
+    <a class="btn btn-ghost" href="{% url 'customer_edit' customer.pk %}"><svg><use href="#i-edit"/></svg>Hariri</a>
+    {% if open_loan %}<a class="btn btn-dark" href="{% url 'loan_detail' open_loan.pk %}"><svg><use href="#i-wallet"/></svg>Mkopo wake</a>
+    {% else %}<a class="btn btn-gold" href="{% url 'loan_apply' %}?mteja={{ customer.pk }}"><svg><use href="#i-file-plus"/></svg>Omba mkopo</a>{% endif %}
   </div>
 </div>
+
+{% if open_loan %}
+<a class="panel" href="{% url 'loan_detail' open_loan.pk %}" style="display:flex;align-items:center;gap:16px;text-decoration:none;border-color:color-mix(in srgb, var(--gold) 45%, var(--line))">
+  <span class="kpi" style="padding:0;border:0;box-shadow:none;background:none;flex:1;min-width:0">
+    <span class="label">{{ open_loan.number }} · {{ open_loan.get_status_display }}</span>
+    <span class="value">TSh {{ open_loan.balance_total|money }}</span>
+    <span class="foot">{% if open_loan.status == 'ACTIVE' %}Deni lililobaki · kumaliza {{ open_loan.due_date|date:"j M Y" }}{% else %}Kiasi kinachoombwa {{ open_loan.principal|money }}{% endif %}</span>
+  </span>
+  <span class="badge {{ open_loan.display_status|status_class }}">{{ open_loan.display_status_label }}</span>
+  <svg width="20" height="20" style="color:var(--muted)"><use href="#i-chevron-right"/></svg>
+</a>
+{% endif %}
+
 <div class="grid grid-2">
   <section class="panel">
-    <h2 style="margin-bottom:12px">Taarifa binafsi</h2>
+    <h2 style="margin-bottom:10px">Taarifa binafsi</h2>
     <dl class="kv">
       <dt>Jinsia</dt><dd>{{ customer.get_gender_display }}</dd>
       <dt>NIDA</dt><dd>{{ customer.national_id|default:"—" }}</dd>
       <dt>Makazi</dt><dd>{{ customer.address|default:"—" }}</dd>
       <dt>Kazi</dt><dd>{{ customer.occupation|default:"—" }}</dd>
-      <dt>Alisajiliwa</dt><dd>{{ customer.created_at|date:"j M Y" }}{% if customer.registered_by %} na {{ customer.registered_by }}{% endif %}</dd>
+      <dt>Alisajiliwa</dt><dd>{{ customer.created_at|date:"j M Y" }}{% if customer.registered_by %}<span class="sub">na {{ customer.registered_by }}</span>{% endif %}</dd>
     </dl>
   </section>
   <section class="panel">
-    <h2 style="margin-bottom:12px">Mdhamini</h2>
+    <h2 style="margin-bottom:10px">Mdhamini</h2>
     {% if customer.guarantor_name %}
     <dl class="kv">
       <dt>Jina</dt><dd>{{ customer.guarantor_name }}</dd>
       <dt>Simu</dt><dd>{% if customer.guarantor_phone %}<a href="tel:{{ customer.guarantor_phone }}">{{ customer.guarantor_phone }}</a>{% else %}—{% endif %}</dd>
       <dt>Uhusiano</dt><dd>{{ customer.guarantor_relation|default:"—" }}</dd>
     </dl>
-    {% else %}<p class="text-muted">Hakuna mdhamini aliyewekwa. <a href="{% url 'customer_edit' customer.pk %}">Ongeza</a>.</p>{% endif %}
+    {% else %}
+    <div class="empty-state" style="padding:20px"><div class="ico"><svg><use href="#i-shield"/></svg></div><p>Hakuna mdhamini aliyewekwa.</p>
+      <a class="btn btn-ghost btn-sm" href="{% url 'customer_edit' customer.pk %}">Ongeza mdhamini</a></div>
+    {% endif %}
   </section>
 </div>
-<section class="panel">
-  <h2 style="margin-bottom:12px">Historia ya mikopo</h2>
-  <div class="table-wrap"><table>
+
+<section class="panel table-wrap" style="margin-top:18px">
+  <div class="panel-head" style="padding:20px 20px 0"><div><h2>Historia ya mikopo</h2><p>Mikopo {{ loans|length }}</p></div></div>
+  <table>
     <thead><tr><th>Mkopo</th><th>Aina</th><th class="num">Kiasi</th><th class="num">Jumla</th><th class="num">Amelipa</th><th class="num">Deni</th><th>Kumaliza</th><th>Hali</th></tr></thead>
     <tbody>
     {% for l in loans %}
-      <tr><td><a href="{% url 'loan_detail' l.pk %}">{{ l.number }}</a><span class="sub">{{ l.applied_at|date:"j M Y" }}</span></td>
+      <tr data-href="{% url 'loan_detail' l.pk %}"><td><a href="{% url 'loan_detail' l.pk %}">{{ l.number }}</a><span class="sub">{{ l.applied_at|date:"j M Y" }}</span></td>
         <td>{{ l.product.name }}</td><td class="num">{{ l.principal|money }}</td><td class="num">{{ l.total_payable|money }}</td>
-        <td class="num">{{ l.paid_total|money }}</td><td class="num">{{ l.balance_total|money }}</td>
-        <td>{{ l.due_date|date:"j M Y"|default:"—" }}</td>
+        <td class="num">{{ l.paid_total|money }}</td><td class="num"><strong>{{ l.balance_total|money }}</strong></td>
+        <td class="nowrap">{{ l.due_date|date:"j M Y"|default:"—" }}</td>
         <td><span class="badge {{ l.display_status|status_class }}">{{ l.display_status_label }}</span></td></tr>
     {% empty %}<tr><td colspan="8" class="empty">Mteja huyu hajachukua mkopo bado.</td></tr>{% endfor %}
     </tbody>
-  </table></div>
+  </table>
 </section>
 {% endblock %}

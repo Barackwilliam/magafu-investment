@@ -1,8 +1,8 @@
 {% load magafu %}
 {% if page.paginator.num_pages > 1 %}
 <nav class="pagination" aria-label="Kurasa">
-  {% if page.has_previous %}<a href="{% query_with page=page.previous_page_number %}">Nyuma</a>{% endif %}
-  <span class="current">{{ page.number }} / {{ page.paginator.num_pages }}</span>
-  {% if page.has_next %}<a href="{% query_with page=page.next_page_number %}">Mbele</a>{% endif %}
+  {% if page.has_previous %}<a class="btn btn-ghost btn-sm" href="{% query_with page=page.previous_page_number %}"><svg><use href="#i-chevron-left"/></svg>Nyuma</a>{% else %}<span></span>{% endif %}
+  <span class="current">Ukurasa {{ page.number }} kati ya {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a class="btn btn-ghost btn-sm" href="{% query_with page=page.next_page_number %}">Mbele<svg><use href="#i-chevron-right"/></svg></a>{% else %}<span></span>{% endif %}
 </nav>
 {% endif %}

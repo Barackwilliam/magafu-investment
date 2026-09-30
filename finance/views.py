@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from core.models import Branch
-from core.utils import branch_filter, date_range, manager_required, paginate, scope_by_branch, total
+from core.utils import branch_filter, branch_required, date_range, manager_required, paginate, scope_by_branch, total
 
 from .forms import CashEntryForm
 from .models import CashEntry
@@ -29,7 +29,7 @@ def cash_list(request):
     })
 
 
-@login_required
+@branch_required
 def cash_create(request):
     initial = {}
     if request.GET.get("aina") in CashEntry.EntryType.values:

@@ -3,29 +3,36 @@
 {% block title %}Madeni sugu{% endblock %}
 {% block content %}
 <div class="page-head">
-  <div><h1>Madeni sugu</h1><p>Wateja {{ rows|length }} wamepita muda wa mkataba, wakidaiwa jumla ya <strong class="text-red">TSh {{ sum|money }}</strong></p></div>
+  <div><div class="eyebrow">Ripoti</div><h1>Madeni sugu</h1><p>Wateja waliopita muda wa mkataba bila kumaliza.</p></div>
   <div class="actions">
     {% if user.is_manager and rows %}
     <form method="post" action="{% url 'sms_remind_overdue' %}" data-confirm="Tuma SMS ya kikumbusho kwa wateja wote {{ rows|length }}?">{% csrf_token %}
-      <button class="btn btn-dark">Tuma vikumbusho kwa wote</button></form>
+      <button class="btn btn-dark"><svg><use href="#i-message"/></svg>Kumbusha wote</button></form>
     {% endif %}
+    <a class="btn btn-ghost" href="?export=csv{% if request.GET.tawi %}&tawi={{ request.GET.tawi }}{% endif %}"><svg><use href="#i-download"/></svg>Pakua Excel</a>
   </div>
 </div>
+<div class="stats">
+  <div class="stat dark"><span>Deni sugu</span><b style="color:#FF8B80">TSh {{ sum|money }}</b><small>wateja {{ rows|length }}</small></div>
+</div>
+{% if branches %}
 <form class="filters" method="get">
   {% include "_branch_select.html" %}
-  {% if branches %}<button class="btn btn-dark" type="submit">Onyesha</button>{% endif %}
-  <button class="btn btn-ghost" type="submit" name="export" value="csv">Pakua Excel (CSV)</button>
+  <button class="btn btn-dark" type="submit">Onyesha</button>
 </form>
-<div class="panel table-wrap"><table>
-  <thead><tr><th>Mteja</th><th>Mdhamini</th><th>Tawi</th><th class="num">Mkopo</th><th class="num">Amelipa</th><th class="num">Deni</th><th>Muda uliisha</th></tr></thead>
-  <tbody>
-  {% for l in rows %}
-    <tr><td><a href="{% url 'loan_detail' l.pk %}">{{ l.customer }}</a><a class="sub" href="tel:{{ l.customer.phone }}">{{ l.customer.phone }}</a></td>
-      <td>{{ l.customer.guarantor_name|default:"—" }}<a class="sub" href="tel:{{ l.customer.guarantor_phone }}">{{ l.customer.guarantor_phone }}</a></td>
-      <td>{{ l.branch }}</td><td class="num">{{ l.principal|money }}</td><td class="num">{{ l.paid_total|money }}</td>
-      <td class="num text-red"><strong>{{ l.balance_total|money }}</strong></td>
-      <td>{{ l.due_date|date:"j M Y" }}<span class="sub text-red">siku {{ l.days_overdue }} zilizopita</span></td></tr>
-  {% empty %}<tr><td colspan="7" class="empty">Hakuna deni sugu. Wateja wote wako ndani ya muda.</td></tr>{% endfor %}
-  </tbody>
-</table></div>
+{% endif %}
+<div class="panel table-wrap">
+  <table>
+    <thead><tr><th>Mteja</th><th>Mdhamini</th>{% if user.is_admin %}<th>Tawi</th>{% endif %}<th class="num">Mkopo</th><th class="num">Amelipa</th><th class="num">Deni</th><th>Muda uliisha</th></tr></thead>
+    <tbody>
+    {% for l in rows %}
+      <tr><td><a href="{% url 'loan_detail' l.pk %}">{{ l.customer }}</a><a class="sub" href="tel:{{ l.customer.phone }}">{{ l.customer.phone }}</a></td>
+        <td>{{ l.customer.guarantor_name|default:"—" }}{% if l.customer.guarantor_phone %}<a class="sub" href="tel:{{ l.customer.guarantor_phone }}">{{ l.customer.guarantor_phone }}</a>{% endif %}</td>
+        {% if user.is_admin %}<td>{{ l.branch }}</td>{% endif %}<td class="num">{{ l.principal|money }}</td><td class="num">{{ l.paid_total|money }}</td>
+        <td class="num"><strong class="text-red">{{ l.balance_total|money }}</strong></td>
+        <td class="nowrap">{{ l.due_date|date:"j M Y" }}<span class="sub text-red">siku {{ l.days_overdue }} zilizopita</span></td></tr>
+    {% empty %}<tr><td colspan="7" class="empty"><div class="empty-state"><div class="ico" style="background:var(--green-bg);color:var(--green)"><svg><use href="#i-check-circle"/></svg></div><h3>Hakuna deni sugu</h3><p>Wateja wote wako ndani ya muda wa mkataba.</p></div></td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

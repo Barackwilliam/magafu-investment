@@ -2,8 +2,13 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Kwenye kompyuta yako, settings zinasomwa kutoka faili la .env (kama lipo).
+# Render haina .env; inatumia Environment variables zake.
+load_dotenv(BASE_DIR / ".env")
 
 
 def env_bool(name, default=False):
@@ -60,6 +65,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "core.context_processors.company",
+                "core.context_processors.navigation",
             ],
         },
     },

@@ -21,14 +21,35 @@ class CustomerForm(forms.ModelForm):
             del self.fields["branch"]
         else:
             self.fields["branch"].queryset = Branch.objects.filter(is_active=True)
+            self.fields["branch"].empty_label = "Chagua tawi…"
         if not self.instance.pk:
             del self.fields["is_active"]
-        self.fields["phone"].widget.attrs["placeholder"] = "07XXXXXXXX"
+        self.fields["phone"].widget.attrs.update({"placeholder": "07XXXXXXXX", "inputmode": "tel", "autocomplete": "off"})
+        self.fields["guarantor_phone"].widget.attrs.update({"placeholder": "07XXXXXXXX", "inputmode": "tel"})
+        self.fields["gender"].choices = [("", "Chagua jinsia…")] + list(Customer.Gender.choices)
+
+    def clean(self):
+        data = super().clean()
+        branch = data.get("branch")
+        if (self.instance.pk and branch and branch.pk != self.instance.branch_id
+                and self.instance.loans.filter(status__in=["PENDING", "APPROVED", "ACTIVE"]).exists()):
+            self.add_error("branch", "Mteja ana mkopo ambao haujaisha, kwa hiyo hawezi kuhamishwa tawi sasa.")
+        return data
 
     def clean_phone(self):
-        phone = "".join(ch for ch in self.cleaned_data["phone"] if ch.isdigit())
-        if phone.startswith("255"):
-            phone = "0" + phone[3:]
-        if len(phone) != 10 or not phone.startswith("0"):
-            raise forms.ValidationError("Weka namba sahihi, mfano 0712345678.")
-        return phone
+        return normalize_tz_phone(self.cleaned_data["phone"])
+
+    def clean_guarantor_phone(self):
+        phone = self.cleaned_data.get("guarantor_phone", "")
+        return normalize_tz_phone(phone) if phone else ""
+
+
+def normalize_tz_phone(value):
+    phone = "".join(ch for ch in value if ch.isdigit())
+    if phone.startswith("255"):
+        phone = "0" + phone[3:]
+    elif len(phone) == 9:
+        phone = "0" + phone
+    if len(phone) != 10 or not phone.startswith("0"):
+        raise forms.ValidationError("Weka namba sahihi, mfano 0712345678.")
+    return phone
