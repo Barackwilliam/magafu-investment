@@ -14,7 +14,7 @@
   <div class="actions">
     <a class="btn btn-ghost" href="{% url 'customer_edit' customer.pk %}"><svg><use href="#i-edit"/></svg>Hariri</a>
     {% if open_loan %}<a class="btn btn-dark" href="{% url 'loan_detail' open_loan.pk %}"><svg><use href="#i-wallet"/></svg>Mkopo wake</a>
-    {% else %}<a class="btn btn-gold" href="{% url 'loan_apply' %}?mteja={{ customer.pk }}"><svg><use href="#i-file-plus"/></svg>Omba mkopo</a>{% endif %}
+    {% else %}<a class="btn btn-gold" href="{% url 'loan_apply' %}?mteja={{ customer.pk }}"><svg><use href="#i-file-plus"/></svg>Toa mkopo</a>{% endif %}
   </div>
 </div>
 

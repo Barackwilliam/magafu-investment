@@ -38,6 +38,15 @@ def create_loan(*, customer, product, principal, user, notes="", form_fee_paid=F
     return loan
 
 
+def give_loan(*, customer, product, principal, user, notes="", form_fee_paid=False):
+    """Hatua moja: kusajili, kuthibitisha na kutoa mkopo pamoja. Mteja anaanza kudaiwa papo hapo."""
+    with transaction.atomic():
+        loan = create_loan(customer=customer, product=product, principal=principal, user=user,
+                           notes=notes, form_fee_paid=form_fee_paid)
+        approve_loan(loan.pk, user)
+    return disburse_loan(loan.pk, user)
+
+
 def _locked(loan_id):
     return Loan.objects.select_for_update().get(pk=loan_id)
 

@@ -275,3 +275,23 @@ class CustomerPagePaymentTests(Fixtures):
         self.client.login(username="afisa", password="pass1234")
         r = self.client.post(reverse("loan_pay", args=[loan.pk]), {"amount": "5000", "method": "CASH", "next": "https://evil.example/"})
         self.assertRedirects(r, reverse("loan_detail", args=[loan.pk]), fetch_redirect_response=False)
+
+
+class OneStepLoanTests(Fixtures):
+    def test_toa_mkopo_is_active_immediately(self):
+        """Mtumiaji mmoja: 'Toa mkopo' inaanza deni papo hapo, bila kuthibitisha na kutoa pesa kando."""
+        self.client.login(username="admin", password="pass1234")
+        r = self.client.post(reverse("loan_apply"), {"customer": self.c1.pk, "product": self.product.pk,
+                                                     "principal": "100000", "form_fee_paid": "on"})
+        loan = Loan.objects.get(customer=self.c1)
+        self.assertEqual(loan.status, Loan.Status.ACTIVE)
+        self.assertIsNotNone(loan.due_date)
+        self.assertRedirects(r, reverse("customer_detail", args=[self.c1.pk]) + "#lipa", fetch_redirect_response=False)
+        self.assertIn("Rekodi malipo aliyoleta", self.client.get(reverse("customer_detail", args=[self.c1.pk])).content.decode())
+
+    def test_old_pending_loan_can_be_given_in_one_click(self):
+        loan = services.create_loan(customer=self.c1, product=self.product, principal=Decimal(50000), user=self.officer)
+        self.client.login(username="admin", password="pass1234")
+        self.client.post(reverse("loan_disburse", args=[loan.pk]))
+        loan.refresh_from_db()
+        self.assertEqual(loan.status, Loan.Status.ACTIVE)

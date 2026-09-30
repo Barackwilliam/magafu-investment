@@ -4,7 +4,7 @@
 {% block content %}
 <div class="page-head">
   <div><h1>Mikopo</h1><p>{{ page.paginator.count }} kwenye kundi la “{% for key, label in filters.items %}{% if key == current %}{{ label }}{% endif %}{% endfor %}”</p></div>
-  <a class="btn btn-gold" href="{% url 'loan_apply' %}"><svg><use href="#i-file-plus"/></svg>Omba mkopo</a>
+  <a class="btn btn-gold" href="{% url 'loan_apply' %}"><svg><use href="#i-file-plus"/></svg>Toa mkopo</a>
 </div>
 
 <nav class="tabs" aria-label="Hali ya mkopo">
@@ -49,7 +49,7 @@
     {% empty %}
       <tr><td colspan="8" class="empty"><div class="empty-state"><div class="ico"><svg><use href="#i-wallet"/></svg></div>
         <h3>Hakuna mkopo hapa</h3><p>Hakuna mkopo kwenye kundi hili{% if q %} unaolingana na “{{ q }}”{% endif %}.</p>
-        <a class="btn btn-gold" href="{% url 'loan_apply' %}">Omba mkopo mpya</a></div></td></tr>
+        <a class="btn btn-gold" href="{% url 'loan_apply' %}">Toa mkopo mpya</a></div></td></tr>
     {% endfor %}
     </tbody>
   </table>
